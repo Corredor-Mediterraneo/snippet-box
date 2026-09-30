@@ -5,9 +5,9 @@ const logger = new Logger('errorHandler');
 
 export const errorHandler = (
   err: ErrorResponse,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   logger.log(err.message, 'ERROR');
 

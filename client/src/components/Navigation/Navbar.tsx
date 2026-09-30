@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import { Route } from '../../typescript/interfaces';
-import { routes as clientRoutes } from './routes.json';
+import routeConfig from './routes.json';
 
 export const Navbar = (): JSX.Element => {
-  const routes = clientRoutes as Route[];
+  const routes = routeConfig.routes as Route[];
 
   return (
     <nav className='navbar navbar-dark bg-dark navbar-expand'>
@@ -11,7 +11,7 @@ export const Navbar = (): JSX.Element => {
         <ul className='navbar-nav'>
           {routes.map(({ name, dest }, idx) => (
             <li className='nav-item' key={idx}>
-              <NavLink exact to={dest} className='nav-link'>
+              <NavLink to={dest} className='nav-link'>
                 {name}
               </NavLink>
             </li>

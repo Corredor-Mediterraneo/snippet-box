@@ -8,6 +8,7 @@ interface Props {
   handler?: () => void;
   classes?: string;
   type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
 }
 
 export const Button = (props: Props): JSX.Element => {
@@ -18,8 +19,9 @@ export const Button = (props: Props): JSX.Element => {
     small = false,
     handler,
     classes = '',
-    type = 'button'
-  } = props;
+    type = 'button',
+    disabled = false
+    } = props;
 
   const elClasses = [
     'btn',
@@ -29,7 +31,7 @@ export const Button = (props: Props): JSX.Element => {
   ];
 
   return (
-    <button type={type} className={elClasses.join(' ')} onClick={handler}>
+    <button type={type} className={elClasses.join(' ')} onClick={handler} disabled={disabled}>
       {text}
     </button>
   );

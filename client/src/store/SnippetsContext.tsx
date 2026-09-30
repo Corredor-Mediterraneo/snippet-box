@@ -1,5 +1,5 @@
 import { useState, createContext } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Context,
@@ -15,6 +15,7 @@ export const SnippetsContext = createContext<Context>({
   searchResults: [],
   currentSnippet: null,
   tagCount: [],
+  selectedSnippets: new Set<number>(),
   getSnippets: () => {},
   getSnippetById: (id: number) => {},
   setSnippet: (id: number) => {},
@@ -23,7 +24,13 @@ export const SnippetsContext = createContext<Context>({
   deleteSnippet: (id: number) => {},
   toggleSnippetPin: (id: number) => {},
   countTags: () => {},
-  searchSnippets: (query: SearchQuery) => {}
+  searchSnippets: (query: SearchQuery) => {},
+  toggleSnippetSelection: (id: number) => {},
+  clearSelection: () => {},
+  exportAllAsJson: () => Promise.resolve([]),
+  exportSelectedAsJson: (ids: number[]) => Promise.resolve([]),
+  exportByTagAsMarkdown: (tag: string) => Promise.resolve(''),
+  exportSelectedAsMarkdown: (ids: number[]) => Promise.resolve('')
 });
 
 interface Props {
@@ -35,11 +42,12 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
   const [searchResults, setSearchResults] = useState<Snippet[]>([]);
   const [currentSnippet, setCurrentSnippet] = useState<Snippet | null>(null);
   const [tagCount, setTagCount] = useState<TagCount[]>([]);
+  const [selectedSnippets, setSelectedSnippets] = useState<Set<number>>(new Set());
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const redirectOnError = () => {
-    history.push('/');
+    navigate('/');
   };
 
   const getSnippets = (): void => {
@@ -77,10 +85,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       .then(res => {
         setSnippets([...snippets, res.data.data]);
         setCurrentSnippet(res.data.data);
-        history.push({
-          pathname: `/snippet/${res.data.data.id}`,
-          state: { from: '/snippets' }
-        });
+        navigate(`/snippet/${res.data.data.id}`);
       })
       .catch(err => redirectOnError());
   };
@@ -102,10 +107,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
         setCurrentSnippet(res.data.data);
 
         if (!isLocal) {
-          history.push({
-            pathname: `/snippet/${res.data.data.id}`,
-            state: { from: '/snippets' }
-          });
+          navigate(`/snippet/${res.data.data.id}`);
         }
       })
       .catch(err => redirectOnError());
@@ -122,7 +124,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
             ...snippets.slice(deletedSnippetIdx + 1)
           ]);
           setSnippet(-1);
-          history.push('/snippets');
+          navigate('/snippets');
         })
         .catch(err => redirectOnError());
     }
@@ -153,11 +155,77 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       .catch(err => console.log(err));
   };
 
+  // Selection functions for export
+  const toggleSnippetSelection = (id: number): void => {
+    const newSelection = new Set(selectedSnippets);
+    if (newSelection.has(id)) {
+      newSelection.delete(id);
+    } else {
+      newSelection.add(id);
+    }
+    setSelectedSnippets(newSelection);
+  };
+
+  const clearSelection = (): void => {
+    setSelectedSnippets(new Set());
+  };
+
+  // Export functions
+  const exportAllAsJson = async (): Promise<any[]> => {
+    try {
+      const res = await axios.post<Response<Snippet[]>>('/api/snippets/export');
+      return res.data.data;
+    } catch (err) {
+      console.error('Export failed:', err);
+      return [];
+    }
+  };
+
+  const exportSelectedAsJson = async (ids: number[]): Promise<any[]> => {
+    try {
+      const res = await axios.post<Response<Snippet[]>>(
+        '/api/snippets/export/json',
+        { snippetIds: ids }
+      );
+      return res.data.data;
+    } catch (err) {
+      console.error('Export failed:', err);
+      return [];
+    }
+  };
+
+  const exportByTagAsMarkdown = async (tag: string): Promise<string> => {
+    try {
+      const res = await axios.post<Response<{ content: string; snippetCount: number }>>(
+        '/api/snippets/export/markdown',
+        { tag }
+      );
+      return res.data.data.content;
+    } catch (err) {
+      console.error('Export failed:', err);
+      return '';
+    }
+  };
+
+  const exportSelectedAsMarkdown = async (ids: number[]): Promise<string> => {
+    try {
+      const res = await axios.post<Response<{ content: string; snippetCount: number }>>(
+        '/api/snippets/export/markdown/selected',
+        { snippetIds: ids }
+      );
+      return res.data.data.content;
+    } catch (err) {
+      console.error('Export failed:', err);
+      return '';
+    }
+  };
+
   const context = {
     snippets,
     searchResults,
     currentSnippet,
     tagCount,
+    selectedSnippets,
     getSnippets,
     getSnippetById,
     setSnippet,
@@ -166,7 +234,13 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     deleteSnippet,
     toggleSnippetPin,
     countTags,
-    searchSnippets
+    searchSnippets,
+    toggleSnippetSelection,
+    clearSelection,
+    exportAllAsJson,
+    exportSelectedAsJson,
+    exportByTagAsMarkdown,
+    exportSelectedAsMarkdown
   };
 
   return (

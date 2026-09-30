@@ -7,7 +7,7 @@ interface Props<T> {
 }
 
 export const PageHeader = <T,>(props: Props<T>): JSX.Element => {
-  const { title, prevDest, prevState } = props;
+  const { title, prevDest } = props;
 
   return (
     <div className='col-12'>
@@ -15,10 +15,7 @@ export const PageHeader = <T,>(props: Props<T>): JSX.Element => {
       {prevDest && (
         <h6>
           <Link
-            to={{
-              pathname: prevDest,
-              state: prevState
-            }}
+            to={prevDest}
             className='text-decoration-none text-light'
           >
             &lt;- Go back

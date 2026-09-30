@@ -3,7 +3,7 @@ import { ErrorResponse } from '../utils';
 
 export const requireBody =
   (...fields: string[]) =>
-  (req: Request, res: Response, next: NextFunction): void => {
+  (req: Request, _res: Response, next: NextFunction): void => {
     const bodyKeys = Object.keys(req.body);
     const missingKeys: string[] = [];
 

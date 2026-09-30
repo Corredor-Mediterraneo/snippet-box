@@ -13,11 +13,11 @@ export const Editor = (): JSX.Element => {
   const [inEdit, setInEdit] = useState(false);
 
   // Get previous location
-  const location = useLocation<{ from: string }>();
-  const { from } = location.state || '/snippets';
+  const location = useLocation();
+  const from = ((location.state as { from: string } | null) || { from: '/snippets' }).from;
 
   // Get id
-  const { id } = useParams<Params>();
+  const { id } = useParams<string>();
 
   // Set snippet
   useEffect(() => {
@@ -31,10 +31,9 @@ export const Editor = (): JSX.Element => {
     <Layout>
       {inEdit ? (
         <Fragment>
-          <PageHeader<{ from: string }>
+          <PageHeader
             title='Edit snippet'
             prevDest={from}
-            prevState={{ from: '/snippets' }}
           />
           <SnippetForm inEdit />
         </Fragment>
