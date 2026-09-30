@@ -1,8 +1,8 @@
-import { DataTypes, QueryInterface } from 'sequelize';
+import { DataTypes } from 'sequelize';
 const { INTEGER, STRING, DATE, TEXT } = DataTypes;
 
-export const up = async (queryInterface: QueryInterface): Promise<void> => {
-  await queryInterface.createTable('snippets', {
+export const up = async (context: any): Promise<void> => {
+  await context.context.createTable('snippets', {
     id: {
       type: INTEGER,
       allowNull: false,
@@ -42,6 +42,6 @@ export const up = async (queryInterface: QueryInterface): Promise<void> => {
   });
 };
 
-export const down = async (queryInterface: QueryInterface): Promise<void> => {
-  await queryInterface.dropTable('snippets');
+export const down = async (context: any): Promise<void> => {
+  await context.context.dropTable('snippets');
 };

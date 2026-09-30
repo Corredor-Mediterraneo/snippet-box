@@ -3,7 +3,7 @@ import { QueryTypes, Op } from 'sequelize';
 import { sequelize } from '../db';
 import { asyncWrapper } from '../middleware';
 import { SnippetModel, Snippet_TagModel, TagModel } from '../models';
-import { ErrorResponse, tagParser, Logger, createTags } from '../utils';
+import { ErrorResponse, tagParser, createTags } from '../utils';
 import { Body, SearchQuery } from '../typescript/interfaces';
 
 /**
@@ -12,7 +12,7 @@ import { Body, SearchQuery } from '../typescript/interfaces';
  * @request POST
  */
 export const createSnippet = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     // Get tags from request body
     const { language, tags: requestTags } = <Body>req.body;
     const parsedRequestTags = tagParser([
@@ -47,7 +47,7 @@ export const createSnippet = asyncWrapper(
  * @request GET
  */
 export const getAllSnippets = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (_req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const snippets = await SnippetModel.findAll({
       include: {
         model: TagModel,
@@ -80,7 +80,7 @@ export const getAllSnippets = asyncWrapper(
  * @request GET
  */
 export const getSnippet = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const snippet = await SnippetModel.findOne({
       where: { id: req.params.id },
       include: {
@@ -94,7 +94,7 @@ export const getSnippet = asyncWrapper(
     });
 
     if (!snippet) {
-      return next(
+      return _next(
         new ErrorResponse(
           404,
           `Snippet with id of ${req.params.id} was not found`
@@ -120,13 +120,13 @@ export const getSnippet = asyncWrapper(
  * @request PUT
  */
 export const updateSnippet = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     let snippet = await SnippetModel.findOne({
       where: { id: req.params.id }
     });
 
     if (!snippet) {
-      return next(
+      return _next(
         new ErrorResponse(
           404,
           `Snippet with id of ${req.params.id} was not found`
@@ -166,13 +166,13 @@ export const updateSnippet = asyncWrapper(
  * @request DELETE
  */
 export const deleteSnippet = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const snippet = await SnippetModel.findOne({
       where: { id: req.params.id }
     });
 
     if (!snippet) {
-      return next(
+      return _next(
         new ErrorResponse(
           404,
           `Snippet with id of ${req.params.id} was not found`
@@ -195,7 +195,7 @@ export const deleteSnippet = asyncWrapper(
  * @request GET
  */
 export const countTags = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (_req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const result = await sequelize.query(
       `SELECT
         COUNT(tags.name) as count,
@@ -221,14 +221,14 @@ export const countTags = asyncWrapper(
  * @request GET
  */
 export const getRawCode = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const snippet = await SnippetModel.findOne({
       where: { id: req.params.id },
       raw: true
     });
 
     if (!snippet) {
-      return next(
+      return _next(
         new ErrorResponse(
           404,
           `Snippet with id of ${req.params.id} was not found`
@@ -246,7 +246,7 @@ export const getRawCode = asyncWrapper(
  * @request POST
  */
 export const searchSnippets = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const { query, tags, languages } = <SearchQuery>req.body;
 
     // Check if query is empty

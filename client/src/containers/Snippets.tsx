@@ -5,8 +5,16 @@ import { Button, Card, EmptyState, Layout } from '../components/UI';
 import { Snippet } from '../typescript/interfaces';
 
 export const Snippets = (): JSX.Element => {
-  const { snippets, tagCount, getSnippets, countTags } =
-    useContext(SnippetsContext);
+  const {
+    snippets,
+    tagCount,
+    getSnippets,
+    countTags,
+    clearSelection,
+    selectedSnippets,
+    exportAllAsJson,
+    exportSelectedAsMarkdown
+  } = useContext(SnippetsContext);
 
   const [filter, setFilter] = useState<string | null>(null);
   const [localSnippets, setLocalSnippets] = useState<Snippet[]>([]);
@@ -31,6 +39,28 @@ export const Snippets = (): JSX.Element => {
     setLocalSnippets([...snippets]);
   };
 
+  const handleExportAllJson = async () => {
+    const data = await exportAllAsJson();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'snippets-export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportSelectedMarkdown = async () => {
+    const content = await exportSelectedAsMarkdown(Array.from(selectedSnippets));
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'snippets-selected.md';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Layout>
       {snippets.length === 0 ? (
@@ -43,6 +73,10 @@ export const Snippets = (): JSX.Element => {
               <div className='mb-3 d-flex justify-content-between'>
                 <span>Total</span>
                 <span>{snippets.length}</span>
+              </div>
+              <div className='mb-3 d-flex justify-content-between'>
+                <span>Selected</span>
+                <span>{selectedSnippets.size}</span>
               </div>
               <hr />
 
@@ -72,6 +106,23 @@ export const Snippets = (): JSX.Element => {
                   small
                   outline
                   handler={clearFilterHandler}
+                />
+              </div>
+              <hr />
+              <h5 className='card-title'>Export</h5>
+              <div className='d-grid gap-2'>
+                <Button
+                  text='Export all as JSON'
+                  color='info'
+                  small
+                  handler={handleExportAllJson}
+                />
+                <Button
+                  text={`Export ${selectedSnippets.size} selected as Markdown`}
+                  color='warning'
+                  small
+                  disabled={selectedSnippets.size === 0}
+                  handler={handleExportSelectedMarkdown}
                 />
               </div>
             </Card>

@@ -44,10 +44,7 @@ export const SnippetCard = (props: Props): JSX.Element => {
         {/* ACTIONS */}
         <div className='d-flex justify-content-end'>
           <Link
-            to={{
-              pathname: `/snippet/${id}`,
-              state: { from: window.location.pathname }
-            }}
+            to={`/snippet/${id}`}
           >
             <Button
               text='View'
