@@ -314,7 +314,7 @@ graph LR
 - Test con Playwright
 - Commit y push a github
 
-### * Step 23: 23. Evaluación AVO y actualización README con capturas
+### ✓ Step 23: 23. Evaluación AVO y actualización README con capturas
 - Ejecutar evaluación AVO completa de la aplicación
 - Generar capturas de pantalla genéricas sin datos reales para el README
 - Actualizar README.md con capturas del modal de búsqueda avanzada y ayuda

@@ -39,6 +39,9 @@ This fork includes significant improvements over the original [pawelmalak/snippe
 | **🛡️ Body Size Validation** | Request body limited to 1MB to prevent DoS attacks |
 | **🔍 Duplicate Detection** | Find and remove duplicate snippets based on title + code hash |
 | **🎯 UI Action Bar** | Quick access buttons in navbar for import, deduplication, and backup/restore |
+| **🔎 Advanced Search Modal** | Categorized search with fields for title, content, tags, languages, and sorting options |
+| **💡 Search Help Modal** | In-app help with examples of basic search, advanced search, and API usage |
+| **⚙️ Settings Modal** | Configure Google Drive backup credentials directly from the browser (stored in localStorage) |
 | **📊 Performance Benchmarks** | All endpoints respond in < 20ms on production build |
 
 ### Security Improvements
@@ -93,6 +96,10 @@ This fork includes significant improvements over the original [pawelmalak/snippe
 | Duplicate Detection | ❌ | ✅ (MD5 hash) |
 | Backup Status/List/Restore | ❌ | ✅ |
 | UI Action Bar | ❌ | ✅ (modals) |
+| Advanced Search Modal | ❌ | ✅ (categorized fields) |
+| Search Help Modal | ❌ | ✅ (in-app examples) |
+| Settings Modal | ❌ | ✅ (browser localStorage) |
+| Search Suggestions API | ❌ | ✅ (autocomplete) |
 | Security Audit (INCIBE-CERT) | ❌ | ✅ |
 | Performance Benchmarks | ❌ | ✅ (< 20ms) |
 
@@ -199,7 +206,8 @@ Create and edit your snippets from a simple and easy to use editor.
 | GET | `/api/snippets/:id` | Get snippet by ID |
 | PUT | `/api/snippets/:id` | Update snippet |
 | DELETE | `/api/snippets/:id` | Delete snippet |
-| POST | `/api/snippets/search` | Search with filters |
+| POST | `/api/snippets/search` | Search with filters (supports `title`, `content`, `sortBy`, `sortOrder`) |
+| **GET** | **`/api/snippets/search/suggestions`** | **Autocomplete suggestions for tags/languages** |
 | GET | `/api/snippets/statistics/count` | Tag count statistics |
 | GET | `/api/snippets/raw/:id` | Raw code output |
 | POST | `/api/snippets/export` | Export all as JSON |
