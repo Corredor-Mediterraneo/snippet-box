@@ -260,7 +260,17 @@ graph LR
 - Endpoint `POST /api/snippets/deduplicate` para eliminar duplicados
 - Endpoint `GET /api/snippets/duplicates/count` para contar duplicados
 
-### * Step 16: 16. Test, commit y push
+### ✓ Step 16: 16. Test, commit y push
 - Verificar compilación TypeScript frontend y backend
 - Test en Docker: deduplicación (309 duplicados detectados), backup status, importación
 - Commit y push a github
+
+### ✓ Step 17: 17. Auditoría de vulnerabilidades con INCIBE y AVO
+- Revisar todas las dependencias (package.json frontend y backend) contra INCIBE-CERT
+- Documentar vulnerabilidades conocidas en snip.md
+- Actualizar versiones vulnerables si es posible
+- Generar informe AVO de seguridad
+
+### * Step 18: 18. Commit final y push de todas las mejoras
+- Commit de snip.md actualizado con auditoría de vulnerabilidades
+- Push a github

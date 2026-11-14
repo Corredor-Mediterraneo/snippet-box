@@ -37,7 +37,13 @@
 | POST | `/api/snippets/import/obsidian` | Importar desde vault de Obsidian |
 | POST | `/api/snippets/export/obsidian` | Exportar como vault de Obsidian (ZIP) |
 | GET | `/api/snippets/:id/export/obsidian` | Exportar snippet individual como Markdown Obsidian |
+| POST | `/api/snippets/import` | Importar snippets desde JSON |
+| POST | `/api/snippets/deduplicate` | Eliminar snippets duplicados |
+| GET | `/api/snippets/duplicates/count` | Contar snippets duplicados |
 | POST | `/api/backup` | Backup a Google Drive |
+| GET | `/api/backup/status` | Estado de configuración del backup |
+| GET | `/api/backup/list` | Listar backups en Google Drive |
+| POST | `/api/backup/restore` | Restaurar último backup |
 
 ---
 
@@ -247,6 +253,61 @@ Para evaluar las mejoras de rendimiento con AVO:
 - **Evaluación**: Medir latencia con y sin las optimizaciones usando un script de benchmark
 - **Holdout**: Consultas con datos reales (100+ snippets) no usados en el benchmark inicial
 - **Mínimos**: La latencia no debe subir más del 5% en ningún endpoint
+
+---
+
+## Auditoría de Vulnerabilidades (INCIBE-CERT + AVO)
+
+### Dependencias del Proyecto
+
+**Backend (package.json):**
+| Paquete | Versión | Estado | CVEs Conocidas |
+|---------|---------|--------|----------------|
+| express | ^5.2.1 | ✅ Actualizado | Sin CVEs recientes |
+| sequelize | ^6.37.8 | ✅ Parcheado | CVE-2026-30951 (SQL injection JSON) parcheado en 6.37.8 |
+| sqlite3 | ^6.0.1 | ⚠️ Revisar | CVE-2025-7709 (FTS5 integer overflow) en SQLite < 3.50.3 |
+| googleapis | ^182.0.0 | ✅ Actualizado | Sin CVEs recientes |
+| archiver | ^8.0.0 | ✅ Actualizado | Sin CVEs recientes |
+| gray-matter | ^4.0.3 | ⚠️ Antiguo | Sin CVEs conocidas, pero sin mantenimiento activo |
+| cors | ^2.8.6 | ✅ Estable | Sin CVEs recientes |
+| dotenv | ^18.0.4 | ✅ Actualizado | Sin CVEs recientes |
+
+**Frontend (client/package.json):**
+| Paquete | Versión | Estado | CVEs Conocidas |
+|---------|---------|--------|----------------|
+| react | ^19.0.0 | ⚠️ Revisar | CVE-2025-55182 (RCE Server Components) - **No aplica**: este es un SPA sin React Server Functions |
+| axios | ^1.20.0 | ✅ Parcheado | CVE-2026-25639 (DoS __proto__) parcheado en 1.13.5; ^1.20.0 incluye parche |
+| react-router-dom | ^7.0.0 | ✅ Actualizado | Sin CVEs recientes |
+| bootstrap | ^5.3.8 | ✅ Actualizado | Sin CVEs recientes |
+| vite | ^5.4.0 | ⚠️ Revisar | CVE-2025-55182 afecta a bundlers con React Server Components - **No aplica** a este SPA |
+| sass | ^1.105.1 | ✅ Actualizado | Sin CVEs recientes |
+| highlight.js | ^11.12.0 | ✅ Actualizado | Sin CVEs recientes |
+| react-markdown | ^10.1.0 | ✅ Actualizado | Sin CVEs recientes |
+| dayjs | ^1.11.23 | ✅ Actualizado | Sin CVEs recientes |
+
+**Runtime:**
+| Componente | Versión | Estado | CVEs Conocidas |
+|------------|---------|--------|----------------|
+| Node.js | 22-alpine (Docker) | ⚠️ Actualizar | CVE-2025-55130 (bypass symlinks, High) - parcheado en versiones recientes de 22.x |
+
+### Referencias INCIBE-CERT
+
+- **CVE-2026-25639** (Axios DoS): https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades/cve-2026-25639
+  - Gravedad: **ALTA** (CVSS 7.5)
+  - Estado en proyecto: **Parcheado** - axios ^1.20.0 > 1.13.5 (versión de parche)
+
+### Recomendaciones AVO - Seguridad
+
+1. **Actualizar Node.js en Dockerfile**: Cambiar `node:22-alpine` por la versión más reciente de 22.x para incluir parches de seguridad
+2. **Monitorear gray-matter**: Aunque no tiene CVEs, el paquete está sin mantenimiento activo. Considerar migrar a `js-yaml` + parsing manual si se detectan vulnerabilidades
+3. **Verificar sqlite3 nativo**: La versión 6.0.1 usa SQLite 3.44.x; verificar si incluye el parche de CVE-2025-7709 (FTS5)
+4. **npm audit**: Ejecutar `npm audit` regularmente para detectar vulnerabilidades nuevas en dependencias transitivas
+
+#### Subsección AVO - Vulnerabilidades
+- **Métrica**: Número de CVEs activas en dependencias directas
+- **Evaluación**: Revisar semestralmente las dependencias contra INCIBE-CERT y npm audit
+- **Holdout**: Dependencias transitivas no listadas arriba
+- **Mínimos**: Cero CVEs de severidad ALTA o CRÍTICA sin parche
 
 ---
 
