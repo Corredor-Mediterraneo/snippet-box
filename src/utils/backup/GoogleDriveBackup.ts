@@ -4,9 +4,10 @@ import path from 'path';
 import { Logger } from '../Logger';
 
 export interface GoogleDriveBackupConfig {
-  clientId: string;
-  clientSecret: string;
-  refreshToken: string;
+  clientId?: string;
+  clientSecret?: string;
+  refreshToken?: string;
+  accessToken?: string;
   folderId?: string;
 }
 
@@ -16,15 +17,34 @@ export class GoogleDriveBackup {
   private folderId?: string;
 
   constructor(config: GoogleDriveBackupConfig) {
-    const oauth2Client = new google.auth.OAuth2({
-      clientId: config.clientId,
-      clientSecret: config.clientSecret,
-      redirectUri: 'http://localhost:3000',
-    });
+    let oauth2Client: any;
 
-    oauth2Client.setCredentials({
-      refresh_token: config.refreshToken,
-    });
+    // Mode 1: Direct access token (no client ID/secret needed)
+    if (config.accessToken) {
+      oauth2Client = new google.auth.OAuth2({
+        clientId: 'unused',
+        clientSecret: 'unused',
+        redirectUri: 'http://localhost:3000',
+      });
+      oauth2Client.setCredentials({
+        access_token: config.accessToken,
+        refresh_token: config.refreshToken,
+      });
+    }
+    // Mode 2: Traditional OAuth2 with client ID, secret, and refresh token
+    else if (config.clientId && config.clientSecret && config.refreshToken) {
+      oauth2Client = new google.auth.OAuth2({
+        clientId: config.clientId,
+        clientSecret: config.clientSecret,
+        redirectUri: 'http://localhost:3000',
+      });
+      oauth2Client.setCredentials({
+        refresh_token: config.refreshToken,
+      });
+    }
+    else {
+      throw new Error('Missing credentials: provide either accessToken or (clientId + clientSecret + refreshToken)');
+    }
 
     this.drive = google.drive({
       version: 'v3',

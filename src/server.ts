@@ -1,6 +1,6 @@
 import { join } from 'path';
 import dotenv from 'dotenv';
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { Logger } from './utils';
 import { connectDB } from './db';
@@ -90,32 +90,13 @@ if (
   logger.info('Google Drive Backup configured');
 }
 
-// Backup authentication middleware
-const requireBackupAuth = (req: Request, res: Response, next: NextFunction): void => {
-  const apiKey = req.headers['x-backup-api-key'] as string;
-  const configuredKey = process.env.BACKUP_API_KEY;
-
-  if (!configuredKey) {
-    res.status(503).json({ error: 'Backup API key not configured' });
-    return;
-  }
-
-  if (!apiKey || apiKey !== configuredKey) {
-    res.status(401).json({ error: 'Unauthorized: invalid or missing API key' });
-    return;
-  }
-
-  next();
-};
 
 // Backup status endpoint (public, returns config status)
 app.get('/api/backup/status', (_req: Request, res: Response) => {
   const configured = !!googleDriveBackup;
-  const apiKeyConfigured = !!process.env.BACKUP_API_KEY;
   res.json({
     configured,
-    apiKeyConfigured,
-    ready: configured && apiKeyConfigured
+    ready: configured
   });
 });
 
@@ -123,8 +104,16 @@ app.get('/api/backup/status', (_req: Request, res: Response) => {
 app.post('/api/backup', async (req: Request, res: Response) => {
   let backup: GoogleDriveBackup;
 
-  // If credentials provided in body, use them (from browser settings)
-  if (req.body && req.body.clientId && req.body.clientSecret && req.body.refreshToken) {
+  // If access token provided in body, use it (simplest method)
+  if (req.body && req.body.accessToken) {
+    backup = new GoogleDriveBackup({
+      accessToken: req.body.accessToken,
+      refreshToken: req.body.refreshToken,
+      folderId: req.body.folderId
+    });
+  }
+  // If OAuth2 credentials provided in body, use them (from browser settings)
+  else if (req.body && req.body.clientId && req.body.clientSecret && req.body.refreshToken) {
     backup = new GoogleDriveBackup({
       clientId: req.body.clientId,
       clientSecret: req.body.clientSecret,
@@ -146,30 +135,48 @@ app.post('/api/backup', async (req: Request, res: Response) => {
   }
 });
 
-// List backups route
-app.get('/api/backup/list', requireBackupAuth, async (_req: Request, res: Response) => {
-  if (!googleDriveBackup) {
-    return res.status(503).json({ error: 'Google Drive Backup not configured' });
+// List backups route - accepts accessToken from query params or body
+app.get('/api/backup/list', async (req: Request, res: Response) => {
+  let backup: GoogleDriveBackup;
+  const accessToken = req.query.accessToken as string;
+  if (accessToken) {
+    backup = new GoogleDriveBackup({
+      accessToken,
+      refreshToken: (req.query.refreshToken as string) || undefined,
+    });
+  } else if (googleDriveBackup) {
+    backup = googleDriveBackup;
+  } else {
+    return res.status(503).json({ error: 'Google Drive Backup not configured. Set credentials in Settings (⚙️) or via .env' });
   }
 
   try {
-    const backups = await googleDriveBackup.listBackups();
+    const backups = await backup.listBackups();
     return res.json({ backups });
   } catch (error: any) {
     return res.status(500).json({ error: 'List backups failed', details: error.message });
   }
 });
 
-// Restore latest backup route
-app.post('/api/backup/restore', requireBackupAuth, async (_req: Request, res: Response) => {
-  if (!googleDriveBackup) {
-    return res.status(503).json({ error: 'Google Drive Backup not configured' });
+// Restore latest backup route - accepts accessToken from body
+app.post('/api/backup/restore', async (req: Request, res: Response) => {
+  let backup: GoogleDriveBackup;
+  const accessToken = req.body?.accessToken as string;
+  if (accessToken) {
+    backup = new GoogleDriveBackup({
+      accessToken,
+      refreshToken: req.body?.refreshToken || undefined,
+    });
+  } else if (googleDriveBackup) {
+    backup = googleDriveBackup;
+  } else {
+    return res.status(503).json({ error: 'Google Drive Backup not configured. Set credentials in Settings (⚙️) or via .env' });
   }
 
   try {
     const dbPath = process.env.DATABASE_PATH || 'data/db.sqlite3';
     const backupPath = dbPath + '.restore.tmp';
-    await googleDriveBackup.downloadLatestBackup(backupPath);
+    await backup.downloadLatestBackup(backupPath);
     
     // Replace the database file
     const fs = await import('fs');
