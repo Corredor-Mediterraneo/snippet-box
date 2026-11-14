@@ -214,4 +214,13 @@ graph LR
 - Configurar orígenes permitidos desde .env
 - Actualizar snip.md con la implementación
 
-### * Step 10: 10. Commit final y push de todas las mejoras
+### ✓ Step 10: 10. Commit final y push de todas las mejoras
+
+### * Step 11: 11. Implementar importación y exportación Obsidian vault
+- Instalar gray-matter para parsear YAML frontmatter
+- Crear controller obsidian.ts con importObsidianVault y exportToObsidian
+- Añadir rutas POST /api/snippets/import/obsidian y POST /api/snippets/export/obsidian
+- Soportar archivos .md con YAML frontmatter (title, description, language, tags, code, docs)
+- Soportar subcarpetas en vaults como categorías
+- Actualizar README.md y snip.md
+- Commit y push a github

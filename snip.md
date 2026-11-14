@@ -34,6 +34,9 @@
 | POST | `/api/snippets/export/json` | Exportar seleccionados JSON |
 | POST | `/api/snippets/export/markdown` | Exportar por tag Markdown |
 | POST | `/api/snippets/export/markdown/selected` | Exportar seleccionados Markdown |
+| POST | `/api/snippets/import/obsidian` | Importar desde vault de Obsidian |
+| POST | `/api/snippets/export/obsidian` | Exportar como vault de Obsidian (ZIP) |
+| GET | `/api/snippets/:id/export/obsidian` | Exportar snippet individual como Markdown Obsidian |
 | POST | `/api/backup` | Backup a Google Drive |
 
 ---
@@ -68,6 +71,14 @@
 ### 6. MCP Server
 - Las herramientas MCP deben funcionar correctamente
 - `delete_snippet` debe limpiar las asociaciones Snippet_Tag antes de eliminar
+
+### 7. Importación/Exportación Obsidian Vault
+- Endpoint `POST /api/snippets/import/obsidian` que acepte archivos Markdown con YAML frontmatter
+- Soporte para frontmatter con: title, description, language, tags, isPinned
+- Extracción de bloques de código del cuerpo del archivo Markdown
+- Endpoint `POST /api/snippets/export/obsidian` que genere un ZIP con archivos `.md` organizados por lenguaje
+- Endpoint `GET /api/snippets/:id/export/obsidian` para exportar un snippet individual
+- Los archivos exportados deben ser compatibles con Obsidian (YAML frontmatter + código en bloques fenced)
 
 ---
 

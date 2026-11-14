@@ -32,6 +32,7 @@ This fork includes significant improvements over the original [pawelmalak/snippe
 | Feature | Description |
 |---------|-------------|
 | **📥 JSON Import** | Import snippets from a JSON file via `POST /api/snippets/import` — migrate from the original version seamlessly |
+| **📓 Obsidian Vault Import/Export** | Import notes from Obsidian vaults and export snippets as Obsidian-compatible `.md` files with YAML frontmatter |
 | **🔌 MCP Server** | Built-in [Model Context Protocol](https://modelcontextprotocol.io/) server for AI editor integration (Cursor, Claude Desktop, etc.) |
 | **☁️ Google Drive Backup** | Optional automatic backup of your database to Google Drive |
 | **🔒 Rate Limiting** | Built-in rate limiting (100 req/min per IP) to protect against abuse |
@@ -84,6 +85,8 @@ This fork includes significant improvements over the original [pawelmalak/snippe
 | Pagination API | ❌ | ✅ |
 | Backup Auth | ❌ | ✅ (API key) |
 | CORS | ❌ | ✅ (configurable) |
+| Obsidian Vault Import | ❌ | ✅ |
+| Obsidian Vault Export | ❌ | ✅ (ZIP) |
 
 ## Development
 
@@ -196,6 +199,9 @@ Create and edit your snippets from a simple and easy to use editor.
 | POST | `/api/snippets/export/markdown` | Export by tag as Markdown |
 | POST | `/api/snippets/export/markdown/selected` | Export selected as Markdown |
 | **POST** | **`/api/snippets/import`** | **Import snippets from JSON** *(new)* |
+| **POST** | **`/api/snippets/import/obsidian`** | **Import from Obsidian vault files** *(new)* |
+| **POST** | **`/api/snippets/export/obsidian`** | **Export as Obsidian vault ZIP** *(new)* |
+| **GET** | **`/api/snippets/:id/export/obsidian`** | **Export single snippet as Obsidian MD** *(new)* |
 | POST | `/api/backup` | Backup to Google Drive *(new)* |
 
 ### Import Snippets (New)
@@ -231,6 +237,58 @@ Response:
     "errorDetails": []
   }
 }
+```
+
+### Obsidian Vault Import/Export (New)
+
+Import notes from an Obsidian vault and export snippets as Obsidian-compatible Markdown files with YAML frontmatter.
+
+#### Import from Obsidian
+
+Send an array of markdown files with their name and content:
+
+```bash
+curl -X POST http://localhost:5000/api/snippets/import/obsidian \
+  -H "Content-Type: application/json" \
+  -d '{
+    "files": [
+      {
+        "name": "hello-world.ts",
+        "content": "---\ntitle: Hello World\nlanguage: typescript\ntags: [example, beginner]\ndescription: Prints hello to console\n---\n\n```typescript\nconsole.log(\"Hello, World!\");\n```\n"
+      }
+    ]
+  }'
+```
+
+Each `.md` file is parsed for YAML frontmatter (`title`, `language`, `tags`, `description`, `isPinned`) and code blocks in the body. Files are organized by language folder on export.
+
+#### Export to Obsidian Vault
+
+Export all snippets, filter by tag, or select specific IDs — returns a ZIP archive ready to drop into an Obsidian vault:
+
+```bash
+# Export all snippets
+curl -X POST http://localhost:5000/api/snippets/export/obsidian \
+  -H "Content-Type: application/json" \
+  -d '{}' -o snippets-vault.zip
+
+# Export by tag
+curl -X POST http://localhost:5000/api/snippets/export/obsidian \
+  -H "Content-Type: application/json" \
+  -d '{"tag": "typescript"}' -o typescript-vault.zip
+
+# Export selected snippets
+curl -X POST http://localhost:5000/api/snippets/export/obsidian \
+  -H "Content-Type: application/json" \
+  -d '{"snippetIds": [1, 2, 3]}' -o selected-vault.zip
+```
+
+The ZIP contains folders organized by language, each with a `.md` file containing YAML frontmatter and the code as a fenced code block.
+
+#### Export Single Snippet
+
+```bash
+curl http://localhost:5000/api/snippets/1/export/obsidian -o snippet-1.md
 ```
 
 ### Google Drive Backup (New)

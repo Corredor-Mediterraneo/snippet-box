@@ -16,6 +16,11 @@ import {
   exportByTagMarkdown,
   exportSelectedSnippetsMarkdown
 } from '../controllers/export';
+import {
+  importFromObsidian,
+  exportToObsidian,
+  exportSingleToObsidian
+} from '../controllers/obsidian';
 import { requireBody } from '../middleware';
 
 export const snippetRouter = Router();
@@ -25,12 +30,7 @@ snippetRouter
   .post(requireBody('title', 'language', 'code'), createSnippet)
   .get(getAllSnippets);
 
-snippetRouter
-  .route('/:id')
-  .get(getSnippet)
-  .put(updateSnippet)
-  .delete(deleteSnippet);
-
+// Routes with :id param must come AFTER static routes to avoid conflicts
 snippetRouter.route('/statistics/count').get(countTags);
 snippetRouter.route('/raw/:id').get(getRawCode);
 snippetRouter.route('/search').post(searchSnippets);
@@ -40,6 +40,18 @@ snippetRouter.route('/export').post(exportAllSnippets);
 snippetRouter.route('/export/json').post(exportSelectedSnippets);
 snippetRouter.route('/export/markdown').post(exportByTagMarkdown);
 snippetRouter.route('/export/markdown/selected').post(exportSelectedSnippetsMarkdown);
+snippetRouter.route('/export/obsidian').post(exportToObsidian);
 
-// Import route
+// Import routes
 snippetRouter.route('/import').post(importSnippets);
+snippetRouter.route('/import/obsidian').post(importFromObsidian);
+
+// Single snippet Obsidian export (must be before /:id generic routes)
+snippetRouter.route('/:id/export/obsidian').get(exportSingleToObsidian);
+
+// Generic snippet CRUD (must be last among :id routes)
+snippetRouter
+  .route('/:id')
+  .get(getSnippet)
+  .put(updateSnippet)
+  .delete(deleteSnippet);
