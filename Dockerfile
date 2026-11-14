@@ -10,10 +10,13 @@ RUN npm install
 # python3, make, g++ needed for sqlite3 native compilation (node-gyp)
 RUN apk add --no-cache python3 make g++
 COPY client/package*.json ./client/
-RUN cd client && npm install --legacy-peer-deps
+RUN cd client && npm install --ignore-scripts
 
 # Copy source code
 COPY . .
+
+# Reinstall client with proper Unix symlinks (Vite 8 creates Windows-style .bin/vite that fails on Alpine)
+RUN cd client && rm -rf node_modules package-lock.json && npm install --ignore-scripts
 
 # Build client
 RUN npm run build:client
