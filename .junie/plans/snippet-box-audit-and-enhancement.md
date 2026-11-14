@@ -306,7 +306,7 @@ graph LR
 - Test con Playwright: modal se abre, autocompletado funciona, búsqueda con filtros
 - Commit y push a github
 
-### Step 22: 22. Modal de ayuda con ejemplos de búsqueda
+### ✓ Step 22: 22. Modal de ayuda con ejemplos de búsqueda
 - Crear componente SearchHelpModal.tsx con ejemplos de búsqueda
 - Incluir ejemplos de filtros por tags, languages, texto libre, combinados
 - Reemplazar el enlace externo al wiki por un botón "?" que abre el modal
@@ -314,7 +314,7 @@ graph LR
 - Test con Playwright
 - Commit y push a github
 
-### Step 23: 23. Evaluación AVO y actualización README con capturas
+### * Step 23: 23. Evaluación AVO y actualización README con capturas
 - Ejecutar evaluación AVO completa de la aplicación
 - Generar capturas de pantalla genéricas sin datos reales para el README
 - Actualizar README.md con capturas del modal de búsqueda avanzada y ayuda
