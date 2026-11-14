@@ -41,14 +41,18 @@ This fork includes significant improvements over the original [pawelmalak/snippe
 
 - **Rate limiting** on all endpoints (100 requests/minute per IP)
 - **Request body size limit** (1MB) to prevent memory exhaustion attacks
+- **Backup endpoint authentication** — requires `x-backup-api-key` header to prevent unauthorized backups
+- **CORS configuration** — configurable allowed origins via `CORS_ORIGINS` env var
 - **Fixed search injection** — search filters now build dynamic `where` clauses safely
 - **Fixed MCP `delete_snippet`** — properly cleans up `Snippet_Tag` associations before deleting
 
 ### Performance Optimizations
 
 - **6 SQLite indexes** on frequently queried columns (`title`, `description`, `language`, `snippet_id`, `tag_id`, `tag name`)
+- **FTS5 full-text search** — SQLite FTS5 virtual table with auto-sync triggers for fast, relevant search results
 - **Tag cache** — in-memory cache with 30s TTL eliminates redundant `SELECT * FROM tags` queries
 - **Parallel tag creation** — tags are created and associated using `Promise.all()` instead of sequential loops
+- **Pagination** — `GET /api/snippets?limit=10&offset=0` to avoid loading all snippets at once (max 200)
 - **Strict comparison** — fixed `==` to `===` in tag matching to prevent type coercion bugs
 
 ### Bug Fixes
@@ -76,6 +80,10 @@ This fork includes significant improvements over the original [pawelmalak/snippe
 | Search Bug (empty filters) | 🐛 | ✅ Fixed |
 | MCP delete bug | 🐛 | ✅ Fixed |
 | Dockerfile build error | 🐛 | ✅ Fixed |
+| FTS5 Full-Text Search | ❌ | ✅ |
+| Pagination API | ❌ | ✅ |
+| Backup Auth | ❌ | ✅ (API key) |
+| CORS | ❌ | ✅ (configurable) |
 
 ## Development
 
@@ -175,7 +183,7 @@ Create and edit your snippets from a simple and easy to use editor.
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| GET | `/api/snippets` | Get all snippets |
+| GET | `/api/snippets` | Get all snippets (supports `?limit=&offset=` pagination) |
 | POST | `/api/snippets` | Create new snippet |
 | GET | `/api/snippets/:id` | Get snippet by ID |
 | PUT | `/api/snippets/:id` | Update snippet |
@@ -234,12 +242,14 @@ GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_client_secret
 GOOGLE_REFRESH_TOKEN=your_refresh_token
 GOOGLE_FOLDER_ID=your_folder_id  # optional
+BACKUP_API_KEY=your_secret_api_key  # required for authentication
 ```
 
-Then trigger a backup:
+Then trigger a backup (requires API key):
 
 ```bash
-curl -X POST http://localhost:5000/api/backup
+curl -X POST http://localhost:5000/api/backup \
+  -H "x-backup-api-key: your_secret_api_key"
 ```
 
 ### MCP Server (New)
