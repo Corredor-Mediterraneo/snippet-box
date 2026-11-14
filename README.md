@@ -391,7 +391,9 @@ The main navigation bar includes quick access buttons for all management operati
 
 ### Security Audit (INCIBE-CERT)
 
-All dependencies have been audited against [INCIBE-CERT vulnerability database](https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades). Key findings:
+All dependencies have been audited against [INCIBE-CERT vulnerability database](https://www.incibe.es/incibe-cert/alerta-temprana/vulnerabilidades). **Last verified: November 14, 2026.**
+
+Key findings:
 
 - **Axios 1.13.2**: CVE-2026-25639 (CSRF via JSONM) — patched in current version
 - **Express 5**: No known critical vulnerabilities
@@ -414,9 +416,38 @@ Measured on Docker production build with 315+ snippets:
 
 ## Usage
 
-### Search functionality
+### Search Examples
 
-Visit wiki for search functionality and available filters reference: [Search functionality](https://github.com/pawelmalak/snippet-box/wiki/Search-functionality)
+The search endpoint supports full-text search (FTS5), tag filters, language filters, and combined queries:
+
+```bash
+# Full-text search (FTS5)
+curl -X POST http://localhost:5000/api/snippets/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "react hooks useEffect"}'
+
+# Filter by language
+curl -X POST http://localhost:5000/api/snippets/search \
+  -H "Content-Type: application/json" \
+  -d '{"languages": ["typescript", "python"]}'
+
+# Filter by tags
+curl -X POST http://localhost:5000/api/snippets/search \
+  -H "Content-Type: application/json" \
+  -d '{"tags": ["utility", "logging"]}'
+
+# Combined: full-text + tags + languages
+curl -X POST http://localhost:5000/api/snippets/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "database connection", "tags": ["database"], "languages": ["typescript"]}'
+
+# Pagination support
+curl -X POST http://localhost:5000/api/snippets/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "api", "limit": 10, "offset": 0}'
+```
+
+Search uses SQLite FTS5 for fast, relevant results. It matches against `title`, `description`, `code`, and `docs` fields simultaneously.
 
 ## License
 
