@@ -108,6 +108,17 @@ const requireBackupAuth = (req: Request, res: Response, next: NextFunction): voi
   next();
 };
 
+// Backup status endpoint (public, returns config status)
+app.get('/api/backup/status', (_req: Request, res: Response) => {
+  const configured = !!googleDriveBackup;
+  const apiKeyConfigured = !!process.env.BACKUP_API_KEY;
+  res.json({
+    configured,
+    apiKeyConfigured,
+    ready: configured && apiKeyConfigured
+  });
+});
+
 // Backup route (optional, requires Google Drive config + API key)
 app.post('/api/backup', requireBackupAuth, async (_req: Request, res: Response) => {
   if (!googleDriveBackup) {
@@ -120,6 +131,41 @@ app.post('/api/backup', requireBackupAuth, async (_req: Request, res: Response) 
     return res.json({ message: 'Backup successful', filename: result.filename });
   } catch (error: any) {
     return res.status(500).json({ error: 'Backup failed', details: error.message });
+  }
+});
+
+// List backups route
+app.get('/api/backup/list', requireBackupAuth, async (_req: Request, res: Response) => {
+  if (!googleDriveBackup) {
+    return res.status(503).json({ error: 'Google Drive Backup not configured' });
+  }
+
+  try {
+    const backups = await googleDriveBackup.listBackups();
+    return res.json({ backups });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'List backups failed', details: error.message });
+  }
+});
+
+// Restore latest backup route
+app.post('/api/backup/restore', requireBackupAuth, async (_req: Request, res: Response) => {
+  if (!googleDriveBackup) {
+    return res.status(503).json({ error: 'Google Drive Backup not configured' });
+  }
+
+  try {
+    const dbPath = process.env.DATABASE_PATH || './data/snippets.sqlite3';
+    const backupPath = dbPath + '.restore.tmp';
+    await googleDriveBackup.downloadLatestBackup(backupPath);
+    
+    // Replace the database file
+    const fs = await import('fs');
+    fs.renameSync(backupPath, dbPath);
+    
+    return res.json({ message: 'Restore successful' });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Restore failed', details: error.message });
   }
 });
 

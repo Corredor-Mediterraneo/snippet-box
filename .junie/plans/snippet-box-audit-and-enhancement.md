@@ -216,11 +216,51 @@ graph LR
 
 ### ✓ Step 10: 10. Commit final y push de todas las mejoras
 
-### * Step 11: 11. Implementar importación y exportación Obsidian vault
+### ✓ Step 11: 11. Implementar importación y exportación Obsidian vault
 - Instalar gray-matter para parsear YAML frontmatter
 - Crear controller obsidian.ts con importObsidianVault y exportToObsidian
 - Añadir rutas POST /api/snippets/import/obsidian y POST /api/snippets/export/obsidian
 - Soportar archivos .md con YAML frontmatter (title, description, language, tags, code, docs)
 - Soportar subcarpetas en vaults como categorías
 - Actualizar README.md y snip.md
+- Commit y push a github
+
+### ✓ Step 12: 12. Test de funcionamiento con Docker y evaluación AVO
+- Construir imagen Docker y levantar contenedor
+- Importar 64 snippets desde SQLite original de pawelmalak/snippet-box
+- Verificar importación: 64/64 snippets, 109 tags, 241 relaciones sin errores
+- Benchmark de rendimiento: todos los endpoints < 200ms (medido con 5 iteraciones)
+- Pruebas de seguridad: rate limiting (429 después de 59 requests), body size limit (413 para 2MB)
+- Verificar funcionalidad: búsqueda FTS5, exportación Obsidian, paginación, migraciones
+- Generar informe AVO con métricas reales en .avo/INFORME.md
+- Proteger datos confidenciales: .gitignore actualizado, archivos temporales eliminados
+- Commit y push a github
+
+### ✓ Step 13: 13. Implementar endpoint de deduplicación en el backend
+- Crear controller `deduplication.ts` con función `removeDuplicates`
+- Detectar duplicados por título + código (hash MD5 del código)
+- Eliminar los duplicados conservando el snippet más antiguo
+- Añadir ruta `POST /api/snippets/deduplicate` en snippets.ts
+- Actualizar el SnippetsContext con la función `removeDuplicates`
+- Actualizar la interfaz Context.ts
+
+### ✓ Step 14: 14. Barra superior con botones de acción en el frontend
+- Modificar Navbar.tsx para añadir sección de acciones (Importar JSON, Importar Obsidian, Eliminar duplicados, Backup/Restore)
+- Crear componente `ImportJsonModal.tsx` para importación JSON con textarea y carga de archivo
+- Crear componente `ImportObsidianModal.tsx` para importación Obsidian con file input y drag & drop
+- Crear componente `DeduplicateModal.tsx` para confirmar y mostrar resultados
+- Crear componente `BackupModal.tsx` para backup/restore Google Drive con estado configurable
+- Dropdown "Import" en navbar con JSON y Obsidian
+- Botones "Remove Duplicates" y "Backup / Restore" en navbar
+
+### ✓ Step 15: 15. Endpoints de backup y deduplicación
+- Añadir endpoint `GET /api/backup/status` para verificar configuración
+- Añadir endpoint `GET /api/backup/list` para listar backups
+- Añadir endpoint `POST /api/backup/restore` para restaurar último backup
+- Endpoint `POST /api/snippets/deduplicate` para eliminar duplicados
+- Endpoint `GET /api/snippets/duplicates/count` para contar duplicados
+
+### * Step 16: 16. Test, commit y push
+- Verificar compilación TypeScript frontend y backend
+- Test en Docker: deduplicación (309 duplicados detectados), backup status, importación
 - Commit y push a github

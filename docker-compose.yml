@@ -1,10 +1,12 @@
-version: '3'
 services:
   snippet-box:
-    image: pawelmalak/snippet-box
+    image: snippet-box-local
     container_name: snippet-box
     volumes:
-      - /path/to/host/data:/app/data
+      - ./data:/app/data
     ports:
       - 5000:5000
     restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=5000

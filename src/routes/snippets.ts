@@ -21,6 +21,10 @@ import {
   exportToObsidian,
   exportSingleToObsidian
 } from '../controllers/obsidian';
+import {
+  removeDuplicates,
+  countDuplicates
+} from '../controllers/deduplication';
 import { requireBody } from '../middleware';
 
 export const snippetRouter = Router();
@@ -45,6 +49,10 @@ snippetRouter.route('/export/obsidian').post(exportToObsidian);
 // Import routes
 snippetRouter.route('/import').post(importSnippets);
 snippetRouter.route('/import/obsidian').post(importFromObsidian);
+
+// Deduplication routes (must be before /:id generic routes)
+snippetRouter.route('/deduplicate').post(removeDuplicates);
+snippetRouter.route('/duplicates/count').get(countDuplicates);
 
 // Single snippet Obsidian export (must be before /:id generic routes)
 snippetRouter.route('/:id/export/obsidian').get(exportSingleToObsidian);
