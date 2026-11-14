@@ -119,15 +119,27 @@ app.get('/api/backup/status', (_req: Request, res: Response) => {
   });
 });
 
-// Backup route (optional, requires Google Drive config + API key)
-app.post('/api/backup', requireBackupAuth, async (_req: Request, res: Response) => {
-  if (!googleDriveBackup) {
-    return res.status(503).json({ error: 'Google Drive Backup not configured' });
+// Backup route - accepts credentials from body or uses env config
+app.post('/api/backup', async (req: Request, res: Response) => {
+  let backup: GoogleDriveBackup;
+
+  // If credentials provided in body, use them (from browser settings)
+  if (req.body && req.body.clientId && req.body.clientSecret && req.body.refreshToken) {
+    backup = new GoogleDriveBackup({
+      clientId: req.body.clientId,
+      clientSecret: req.body.clientSecret,
+      refreshToken: req.body.refreshToken,
+      folderId: req.body.folderId
+    });
+  } else if (googleDriveBackup) {
+    backup = googleDriveBackup;
+  } else {
+    return res.status(503).json({ error: 'Google Drive Backup not configured. Set credentials in Settings (⚙️) or via .env' });
   }
 
   try {
     const dbPath = process.env.DATABASE_PATH || './data/snippets.sqlite3';
-    const result = await googleDriveBackup.backupDatabase(dbPath);
+    const result = await backup.backupDatabase(dbPath);
     return res.json({ message: 'Backup successful', filename: result.filename });
   } catch (error: any) {
     return res.status(500).json({ error: 'Backup failed', details: error.message });

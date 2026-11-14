@@ -2,8 +2,14 @@ import { useRef, useEffect, KeyboardEvent, useContext } from 'react';
 import { SnippetsContext } from '../store';
 import { searchParser } from '../utils';
 
-export const SearchBar = (): JSX.Element => {
+interface Props {
+  onShowAdvanced?: () => void;
+  onShowHelp?: () => void;
+}
+
+export const SearchBar = (props: Props): JSX.Element => {
   const { searchSnippets } = useContext(SnippetsContext);
+  const { onShowAdvanced, onShowHelp } = props;
   const inputRef = useRef<HTMLInputElement>(document.createElement('input'));
 
   useEffect(() => {
@@ -23,24 +29,50 @@ export const SearchBar = (): JSX.Element => {
 
   return (
     <div className='mb-3'>
-      <input
-        type='text'
-        className='form-control'
-        placeholder='card lang:typescript tags:ui,react'
-        ref={inputRef}
-        onKeyUp={e => inputHandler(e)}
-      />
+      <div className='input-group'>
+        <input
+          type='text'
+          className='form-control'
+          placeholder='card lang:typescript tags:ui,react'
+          ref={inputRef}
+          onKeyUp={e => inputHandler(e)}
+        />
+        {onShowAdvanced && (
+          <button
+            type='button'
+            className='btn btn-outline-secondary'
+            onClick={onShowAdvanced}
+            title='Advanced search'
+          >
+            Advanced
+          </button>
+        )}
+        {onShowHelp && (
+          <button
+            type='button'
+            className='btn btn-outline-secondary'
+            onClick={onShowHelp}
+            title='Search help'
+          >
+            ?
+          </button>
+        )}
+      </div>
       <div className='form-text text-gray ms-1'>
-        Search by pressing `Enter`. Clear with `Esc`. Read more about available
-        filters{' '}
-        <a
-          href='https://github.com/pawelmalak/snippet-box/wiki/Search-filters'
-          target='_blank'
-          rel='noreferrer'
-          className='text-success text-decoration-none'
-        >
-          here
-        </a>
+        Search by pressing <kbd>Enter</kbd>. Clear with <kbd>Esc</kbd>.
+        {onShowHelp && (
+          <span>
+{' '}
+            Read more about available filters{' '}
+            <a
+              href='#'
+              onClick={e => { e.preventDefault(); onShowHelp(); }}
+              className='text-success text-decoration-none'
+            >
+              here
+            </a>
+          </span>
+        )}
       </div>
     </div>
   );

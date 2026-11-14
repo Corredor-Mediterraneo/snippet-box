@@ -293,3 +293,31 @@ graph LR
 - Añadir Bootstrap JS bundle para dropdowns funcionales
 - Test con Playwright: 7/7 tests pasan (Backup, Deduplicate, JSON, SQLite, Markdown, Obsidian, dropdown)
 - Commit y push a github
+
+### ✓ Step 21: 21. Modal de búsqueda avanzada con autocompletado y ordenación
+- Crear endpoint GET /api/snippets/search/suggestions para autocompletado de tags y languages
+- Actualizar SearchQuery interface con campos: title, content, sortBy, sortOrder
+- Actualizar backend searchSnippets para soportar ordenación y búsqueda por campo
+- Crear componente AdvancedSearchModal.tsx con campos separados (título, contenido, tags, lenguaje)
+- Implementar autocompletado en tags y languages usando suggestions endpoint
+- Añadir opciones de ordenación (fecha creación, título alfabético)
+- Reemplazar enlace al wiki del repo original por botón de ayuda que abre el modal
+- Actualizar SearchBar.tsx para integrar el modal de búsqueda avanzada
+- Test con Playwright: modal se abre, autocompletado funciona, búsqueda con filtros
+- Commit y push a github
+
+### Step 22: 22. Modal de ayuda con ejemplos de búsqueda
+- Crear componente SearchHelpModal.tsx con ejemplos de búsqueda
+- Incluir ejemplos de filtros por tags, languages, texto libre, combinados
+- Reemplazar el enlace externo al wiki por un botón "?" que abre el modal
+- Actualizar SearchBar y AdvancedSearchModal para usar el modal de ayuda
+- Test con Playwright
+- Commit y push a github
+
+### Step 23: 23. Evaluación AVO y actualización README con capturas
+- Ejecutar evaluación AVO completa de la aplicación
+- Generar capturas de pantalla genéricas sin datos reales para el README
+- Actualizar README.md con capturas del modal de búsqueda avanzada y ayuda
+- Actualizar snip.md con resultados de AVO
+- Test final con Playwright
+- Commit y push a github

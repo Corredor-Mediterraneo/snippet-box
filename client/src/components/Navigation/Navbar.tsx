@@ -9,11 +9,12 @@ interface Props {
   onShowMarkdownImport: () => void;
   onShowDeduplicate: () => void;
   onShowBackup: () => void;
+  onShowSettings: () => void;
 }
 
 export const Navbar = (props: Props): JSX.Element => {
   const routes = routeConfig.routes as Route[];
-  const { onShowJsonImport, onShowObsidianImport, onShowSqliteImport, onShowMarkdownImport, onShowDeduplicate, onShowBackup } = props;
+  const { onShowJsonImport, onShowObsidianImport, onShowSqliteImport, onShowMarkdownImport, onShowDeduplicate, onShowBackup, onShowSettings } = props;
 
   return (
     <>
@@ -97,6 +98,17 @@ export const Navbar = (props: Props): JSX.Element => {
                 style={{ color: '#adb5bd' }}
               >
                 Backup / Restore
+              </button>
+            </li>
+            <li className='nav-item'>
+              <button
+                type='button'
+                className='nav-link btn'
+                onClick={onShowSettings}
+                style={{ color: '#adb5bd', fontSize: '1.2rem' }}
+                title='Settings'
+              >
+                ⚙️
               </button>
             </li>
           </ul>

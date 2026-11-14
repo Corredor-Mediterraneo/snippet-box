@@ -4,8 +4,14 @@ import { Layout, PageHeader, EmptyState } from '../components/UI';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
 import { SearchBar } from '../components/SearchBar';
 
-export const Home = (): JSX.Element => {
+interface Props {
+  onShowAdvanced?: () => void;
+  onShowHelp?: () => void;
+}
+
+export const Home = (props: Props): JSX.Element => {
   const { snippets, getSnippets, searchResults } = useContext(SnippetsContext);
+  const { onShowAdvanced, onShowHelp } = props;
 
   useEffect(() => {
     getSnippets();
@@ -18,7 +24,7 @@ export const Home = (): JSX.Element => {
       ) : (
         <Fragment>
           <PageHeader title='Search' />
-          <SearchBar />
+          <SearchBar onShowAdvanced={onShowAdvanced} onShowHelp={onShowHelp} />
           <div className='col-12 mb-4'>
             <SnippetGrid snippets={searchResults} />
           </div>

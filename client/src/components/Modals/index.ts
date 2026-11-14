@@ -4,3 +4,6 @@ export { ImportSqliteModal } from './ImportSqliteModal';
 export { ImportMarkdownModal } from './ImportMarkdownModal';
 export { DeduplicateModal } from './DeduplicateModal';
 export { BackupModal } from './BackupModal';
+export { AdvancedSearchModal } from './AdvancedSearchModal';
+export { SearchHelpModal } from './SearchHelpModal';
+export { SettingsModal } from './SettingsModal';

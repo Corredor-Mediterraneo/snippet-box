@@ -8,6 +8,7 @@ import {
   getSnippet,
   importSnippets,
   searchSnippets,
+  searchSuggestions,
   updateSnippet
 } from '../controllers/snippets';
 import {
@@ -42,6 +43,7 @@ snippetRouter
 snippetRouter.route('/statistics/count').get(countTags);
 snippetRouter.route('/raw/:id').get(getRawCode);
 snippetRouter.route('/search').post(searchSnippets);
+snippetRouter.route('/search/suggestions').get(searchSuggestions);
 
 // Export routes
 snippetRouter.route('/export').post(exportAllSnippets);

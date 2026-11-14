@@ -9,7 +9,10 @@ import {
   ImportSqliteModal,
   ImportMarkdownModal,
   DeduplicateModal,
-  BackupModal
+  BackupModal,
+  AdvancedSearchModal,
+  SearchHelpModal,
+  SettingsModal
 } from './components/Modals';
 
 export const App = () => {
@@ -19,6 +22,9 @@ export const App = () => {
   const [showMarkdownImport, setShowMarkdownImport] = useState(false);
   const [showDeduplicate, setShowDeduplicate] = useState(false);
   const [showBackup, setShowBackup] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showSearchHelp, setShowSearchHelp] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleImportSuccess = () => {
     window.location.reload();
@@ -34,9 +40,10 @@ export const App = () => {
           onShowMarkdownImport={() => setShowMarkdownImport(true)}
           onShowDeduplicate={() => setShowDeduplicate(true)}
           onShowBackup={() => setShowBackup(true)}
+          onShowSettings={() => setShowSettings(true)}
         />
         <Routes>
-          <Route path='/' element={<Home />} />
+          <Route path='/' element={<Home onShowAdvanced={() => setShowAdvancedSearch(true)} onShowHelp={() => setShowSearchHelp(true)} />} />
           <Route path='/snippets' element={<Snippets />} />
           <Route path='/snippet/:id' element={<Snippet />} />
           <Route path='/editor/:id?' element={<Editor />} />
@@ -69,6 +76,18 @@ export const App = () => {
         <BackupModal
           show={showBackup}
           onClose={() => setShowBackup(false)}
+        />
+        <AdvancedSearchModal
+          show={showAdvancedSearch}
+          onClose={() => setShowAdvancedSearch(false)}
+        />
+        <SearchHelpModal
+          show={showSearchHelp}
+          onClose={() => setShowSearchHelp(false)}
+        />
+        <SettingsModal
+          show={showSettings}
+          onClose={() => setShowSettings(false)}
         />
       </SnippetsContextProvider>
     </BrowserRouter>

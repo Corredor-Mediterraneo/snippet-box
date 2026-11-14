@@ -258,10 +258,17 @@ export const getRawCode = asyncWrapper(
  * @description Search snippets (uses FTS5 if available, falls back to LIKE)
  * @route /api/snippets/search
  * @request POST
+ * @body query - full-text search query
+ * @body title - filter by title substring
+ * @body content - filter by code/docs substring
+ * @body tags - filter by tags array
+ * @body languages - filter by languages array
+ * @body sortBy - sort by 'createdAt' or 'title'
+ * @body sortOrder - 'asc' or 'desc'
  */
 export const searchSnippets = asyncWrapper(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
-    const { query, tags, languages } = <SearchQuery>req.body;
+    const { query, tags, languages, title, content, sortBy, sortOrder } = <SearchQuery>req.body;
 
     // Check if FTS5 table exists
     let ftsAvailable = false;
@@ -277,6 +284,23 @@ export const searchSnippets = asyncWrapper(
 
     // Build dynamic where clause
     const whereConditions: any[] = [];
+
+    // Title filter
+    if (title && title.trim() !== '') {
+      whereConditions.push({
+        title: { [Op.substring]: title.trim() }
+      });
+    }
+
+    // Content filter (code + docs)
+    if (content && content.trim() !== '') {
+      whereConditions.push({
+        [Op.or]: [
+          { code: { [Op.substring]: content.trim() } },
+          { docs: { [Op.substring]: content.trim() } }
+        ]
+      });
+    }
 
     // Only add text search if query is not empty
     if (query && query.trim() !== '') {
@@ -317,6 +341,17 @@ export const searchSnippets = asyncWrapper(
       });
     }
 
+    // Build order clause
+    const order: [string, string][] = [];
+    if (sortBy === 'title') {
+      order.push(['title', sortOrder === 'asc' ? 'ASC' : 'DESC']);
+    } else if (sortBy === 'createdAt') {
+      order.push(['createdAt', sortOrder === 'asc' ? 'ASC' : 'DESC']);
+    } else {
+      // Default: newest first
+      order.push(['createdAt', 'DESC']);
+    }
+
     const snippets = await SnippetModel.findAll({
       where: whereConditions.length > 0 ? { [Op.and]: whereConditions } : {},
       include: {
@@ -331,12 +366,58 @@ export const searchSnippets = asyncWrapper(
         through: {
           attributes: []
         }
-      }
+      },
+      order
     });
 
     res.status(200).json({
       data: snippets
     });
+  }
+);
+
+/**
+ * @description Get search suggestions for autocomplete
+ * @route /api/snippets/search/suggestions
+ * @request GET
+ * @query q - partial match for tags or languages
+ * @query type - 'tags', 'languages', or 'both'
+ */
+export const searchSuggestions = asyncWrapper(
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+    const q = (req.query.q as string) || '';
+    const type = (req.query.type as string) || 'both';
+
+    const suggestions: { tags: string[]; languages: string[] } = { tags: [], languages: [] };
+
+    const likePattern = `%${q}%`;
+
+    if (type === 'tags' || type === 'both') {
+      const tagResults = await TagModel.findAll({
+        where: {
+          name: { [Op.like]: likePattern }
+        },
+        attributes: ['name'],
+        limit: 20,
+        order: [['name', 'ASC']]
+      });
+      suggestions.tags = tagResults.map((t: any) => t.name);
+    }
+
+    if (type === 'languages' || type === 'both') {
+      const langResults = await SnippetModel.findAll({
+        attributes: [['language', 'lang']],
+        where: {
+          language: { [Op.like]: likePattern }
+        },
+        group: ['language'],
+        limit: 20,
+        order: [['language', 'ASC']]
+      });
+      suggestions.languages = langResults.map((s: any) => s.dataValues?.lang || s.language);
+    }
+
+    res.status(200).json({ data: suggestions });
   }
 );
 
