@@ -19,8 +19,31 @@ const logger = new Logger('server');
 const PORT = process.env.PORT || 5000;
 
 // App config
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(express.static(join(__dirname, '../public')));
+
+// Simple rate limiting
+const rateLimitMap = new Map<string, { count: number; reset: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX = 100; // 100 requests per minute
+
+app.use((req, res, next) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+
+  if (!record || now > record.reset) {
+    rateLimitMap.set(ip, { count: 1, reset: now + RATE_LIMIT_WINDOW });
+    return next();
+  }
+
+  record.count++;
+  if (record.count > RATE_LIMIT_MAX) {
+    return res.status(429).json({ error: 'Too many requests, please try again later' });
+  }
+
+  next();
+});
 
 // Serve client code
 app.get(/^\/(?!api)/, (_req: Request, res: Response) => {

@@ -6,6 +6,7 @@ import {
   getAllSnippets,
   getRawCode,
   getSnippet,
+  importSnippets,
   searchSnippets,
   updateSnippet
 } from '../controllers/snippets';
@@ -39,3 +40,6 @@ snippetRouter.route('/export').post(exportAllSnippets);
 snippetRouter.route('/export/json').post(exportSelectedSnippets);
 snippetRouter.route('/export/markdown').post(exportByTagMarkdown);
 snippetRouter.route('/export/markdown/selected').post(exportSelectedSnippetsMarkdown);
+
+// Import route
+snippetRouter.route('/import').post(importSnippets);

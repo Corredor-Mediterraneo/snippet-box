@@ -1,39 +1,54 @@
-import { sequelize } from '../db';
-import { QueryTypes } from 'sequelize';
 import { TagModel, Snippet_TagModel } from '../models';
+
+// In-memory cache for tags to avoid repeated SELECT * queries
+let tagCache: Map<string, { id: number; name: string }> | null = null;
+let tagCacheTime = 0;
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
+async function getTagCache(): Promise<Map<string, { id: number; name: string }>> {
+  const now = Date.now();
+  if (!tagCache || (now - tagCacheTime) > CACHE_TTL) {
+    const tags = await TagModel.findAll({ attributes: ['id', 'name'] });
+    tagCache = new Map(tags.map(tag => [tag.name, { id: tag.id, name: tag.name }]));
+    tagCacheTime = now;
+  }
+  return tagCache!;
+}
 
 export const createTags = async (
   parsedTags: Set<string>,
   snippetId: number
 ): Promise<void> => {
-  // Get all tags
-  const rawAllTags = await sequelize.query<{ id: number; name: string }>(
-    `SELECT * FROM tags`,
-    { type: QueryTypes.SELECT }
-  );
+  // Get cached tags
+  const tagMap = await getTagCache();
 
-  const parsedAllTags = rawAllTags.map(tag => tag.name);
+  // Find tags that don't exist yet
+  const newTags = [...parsedTags].filter(tag => !tagMap.has(tag));
 
-  // Create array of new tags
-  const newTags = [...parsedTags].filter(tag => !parsedAllTags.includes(tag));
-
-  // Create new tags
+  // Create new tags in parallel
   if (newTags.length > 0) {
-    for (const tag of newTags) {
-      const { id, name } = await TagModel.create({ name: tag });
-      rawAllTags.push({ id, name });
+    const createdTags = await Promise.all(
+      newTags.map(tagName => TagModel.create({ name: tagName }))
+    );
+    // Update cache with new tags
+    for (const tag of createdTags) {
+      tagMap.set(tag.name, { id: tag.id, name: tag.name });
     }
   }
 
-  // Associate tags with snippet
-  for (const tag of parsedTags) {
-    const tagObj = rawAllTags.find(t => t.name == tag);
+  // Associate tags with snippet in parallel
+  const associations = [...parsedTags]
+    .map(tagName => tagMap.get(tagName))
+    .filter((tagObj): tagObj is { id: number; name: string } => tagObj !== undefined);
 
-    if (tagObj) {
-      await Snippet_TagModel.create({
-        snippet_id: snippetId,
-        tag_id: tagObj.id
-      });
-    }
+  if (associations.length > 0) {
+    await Promise.all(
+      associations.map(tagObj =>
+        Snippet_TagModel.create({
+          snippet_id: snippetId,
+          tag_id: tagObj.id
+        })
+      )
+    );
   }
 };

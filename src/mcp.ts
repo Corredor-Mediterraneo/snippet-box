@@ -195,6 +195,7 @@ export async function startMcpServer(): Promise<void> {
       };
     }
 
+    await Snippet_TagModel.destroy({ where: { snippet_id: args.id } });
     await snippet.destroy();
 
     return {

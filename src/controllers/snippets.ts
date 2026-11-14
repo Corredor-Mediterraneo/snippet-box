@@ -249,42 +249,37 @@ export const searchSnippets = asyncWrapper(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const { query, tags, languages } = <SearchQuery>req.body;
 
-    // Check if query is empty
-    if (query === '' && !tags.length && !languages.length) {
-      res.status(200).json({
-        data: []
-      });
+    // Build dynamic where clause
+    const whereConditions: any[] = [];
 
-      return;
+    // Only add text search if query is not empty
+    if (query && query.trim() !== '') {
+      whereConditions.push({
+        [Op.or]: [
+          { title: { [Op.substring]: query } },
+          { description: { [Op.substring]: query } }
+        ]
+      });
     }
 
-    const languageFilter = languages.length
-      ? { [Op.in]: languages }
-      : { [Op.notIn]: languages };
-
-    const tagFilter = tags.length ? { [Op.in]: tags } : { [Op.notIn]: tags };
+    // Only add language filter if languages array has items
+    if (languages && languages.length > 0) {
+      whereConditions.push({
+        language: { [Op.in]: languages }
+      });
+    }
 
     const snippets = await SnippetModel.findAll({
-      where: {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              { title: { [Op.substring]: `${query}` } },
-              { description: { [Op.substring]: `${query}` } }
-            ]
-          },
-          {
-            language: languageFilter
-          }
-        ]
-      },
+      where: whereConditions.length > 0 ? { [Op.and]: whereConditions } : {},
       include: {
         model: TagModel,
         as: 'tags',
         attributes: ['name'],
-        where: {
-          name: tagFilter
-        },
+        ...(tags && tags.length > 0 ? {
+          where: {
+            name: { [Op.in]: tags }
+          }
+        } : {}),
         through: {
           attributes: []
         }
@@ -293,6 +288,80 @@ export const searchSnippets = asyncWrapper(
 
     res.status(200).json({
       data: snippets
+    });
+  }
+);
+
+/**
+ * @description Import snippets from JSON
+ * @route /api/snippets/import
+ * @request POST
+ */
+export const importSnippets = asyncWrapper(
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+    const { snippets: importData } = req.body;
+
+    if (!importData || !Array.isArray(importData)) {
+      return _next(
+        new ErrorResponse(400, 'Invalid format: snippets must be an array')
+      );
+    }
+
+    const imported: number[] = [];
+    const errors: { index: number; error: string }[] = [];
+
+    for (let i = 0; i < importData.length; i++) {
+      const item = importData[i];
+
+      // Validate required fields
+      if (!item.title || !item.language || !item.code) {
+        errors.push({
+          index: i,
+          error: 'Missing required fields: title, language, and code are required'
+        });
+        continue;
+      }
+
+      try {
+        // Create snippet
+        const snippet = await SnippetModel.create({
+          title: item.title,
+          description: item.description || '',
+          language: item.language.toLowerCase(),
+          code: item.code,
+          docs: item.docs || '',
+          isPinned: item.isPinned ? 1 : 0
+        });
+
+        // Create tags if provided
+        if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
+          const parsedTags = tagParser([
+            ...item.tags,
+            item.language.toLowerCase()
+          ]);
+          await createTags(parsedTags, snippet.id);
+        } else {
+          // Create language tag at minimum
+          const parsedTags = tagParser([item.language.toLowerCase()]);
+          await createTags(parsedTags, snippet.id);
+        }
+
+        imported.push(snippet.id);
+      } catch (err: any) {
+        errors.push({
+          index: i,
+          error: err.message || 'Failed to create snippet'
+        });
+      }
+    }
+
+    res.status(200).json({
+      data: {
+        imported: imported.length,
+        errors: errors.length,
+        importedIds: imported,
+        errorDetails: errors
+      }
     });
   }
 );

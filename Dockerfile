@@ -39,9 +39,6 @@ RUN npm prune --production
 # Create necessary directories
 RUN mkdir -p ./data ./data/backups
 
-# Copy original database if it exists (for migration)
-COPY db.sqlite3 ./data/db.sqlite3
-
 EXPOSE 5000
 
 ENV NODE_ENV=production

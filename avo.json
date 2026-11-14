@@ -1,0 +1,20 @@
+{
+  "_comentario": "Configuración AVO para Snippet Box - métricas de rendimiento API",
+  "gate": [
+    {"id": "compilacion", "cmd": ["node", "bench/gate.js"], "timeout_s": 120}
+  ],
+  "gate_repeats": 1,
+  "measure": {"cmd": ["node", "bench/medir.js"], "repeats": 3, "timeout_s": 300},
+  "higher_is_better": true,
+  "unit": 1,
+  "minimums": [
+    {"id": "compilacion_pasa", "cmd": ["node", "bench/gate.js"], "timeout_s": 120}
+  ],
+  "done": [
+    {"id": "busqueda_con_filtro_vacio", "cmd": ["node", "bench/gate.js"], "timeout_s": 120}
+  ],
+  "holdout": {"cmd": ["node", "bench/medir.js"], "repeats": 1, "timeout_s": 300},
+  "holdout_paths": [],
+  "eval_paths": ["bench"],
+  "budget_steps": 5
+}

@@ -150,9 +150,8 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       .post<Response<Snippet[]>>('/api/snippets/search', query)
       .then(res => {
         setSearchResults(res.data.data);
-        console.log(res.data.data);
       })
-      .catch(err => console.log(err));
+      .catch(err => redirectOnError());
   };
 
   // Selection functions for export

@@ -1,0 +1,189 @@
+---
+sessionId: session-261114-172959-duan
+---
+
+# Requirements
+
+### Overview & Goals
+
+Snippet Box es un gestor de snippets auto-hospedado (fork de [pawelmalak/snippet-box](https://github.com/pawelmalak/snippet-box)) que permite crear, editar, buscar y gestionar fragmentos de código en múltiples lenguajes. El objetivo es:
+
+1. Revisar el proyecto completo para identificar fallos de seguridad, funcionalidad y rendimiento
+2. Darle funcionalidad completa incluyendo importación desde la versión original
+3. Evaluar con el skill avo para optimización de rendimiento
+4. Documentar todo en `snip.md`
+
+### Scope
+
+**In Scope:**
+- Auditoría completa del código backend (Express/TypeScript) y frontend (React)
+- Identificación de fallos de seguridad, funcionalidad y rendimiento
+- Implementación de endpoint de importación JSON desde pawelmalak/snippet-box
+- Implementación de sincronización con colecciones originales
+- Corrección de bugs identificados
+- Evaluación con skill avo
+- Documentación en `snip.md`
+
+**Out of Scope:**
+- Cambios de arquitectura mayor (mantener Express + React + SQLite)
+- Migración a otra base de datos (se evaluará pero no se implementará sin aprobación)
+- Cambios de UI/UX mayores
+
+### User Stories
+
+- Como usuario, quiero importar mis snippets desde la versión original de pawelmalak para migrar sin perder datos
+- Como usuario, quiero actualizar una colección original con nuevos snippets añadidos en esta versión
+- Como administrador, quiero que la aplicación sea segura contra inyecciones y accesos no autorizados
+- Como usuario, quiero que las búsquedas sean rápidas incluso con cientos de snippets
+
+### Functional Requirements
+
+1. **Importación de snippets**: Endpoint `POST /api/snippets/import` que acepte JSON con snippets y los importe a la base de datos
+2. **Exportación mejorada**: Capacidad de exportar snippets en formato compatible con importación
+3. **Búsqueda funcional**: La búsqueda debe filtrar correctamente por query, tags y languages
+4. **Gestión de tags**: Los tags deben asociarse correctamente a los snippets
+5. **Backup Google Drive**: Funcionalidad de backup debe funcionar con credenciales válidas
+6. **MCP Server**: Las herramientas MCP deben funcionar correctamente
+
+### Non-Functional Requirements
+
+- **Seguridad**: Validación de entrada en todos los endpoints, protección contra inyección SQL
+- **Rendimiento**: Respuesta API < 200ms para operaciones básicas
+- **Persistencia**: SQLite con migraciones automáticas
+- **Docker**: Imagen Docker funcional para despliegue
+
+# Technical Design
+
+### Current Implementation
+
+**Arquitectura:**
+- Backend: Node.js + Express + TypeScript + Sequelize ORM + SQLite
+- Frontend: React + TypeScript + Bootstrap + Vite
+- Deploy: Docker (multi-stage build)
+- Backup: Google Drive API (opcional)
+- MCP Server: Model Context Protocol para integración con AI
+
+**Modelos de datos:**
+- `Snippet`: id, title, description, language, code, docs, isPinned, createdAt, updatedAt
+- `Tag`: id, name (único)
+- `Snippet_Tag`: tabla intermedia many-to-many
+
+**API Endpoints actuales:**
+- `GET/POST /api/snippets` - CRUD snippets
+- `GET/PUT/DELETE /api/snippets/:id` - CRUD individual
+- `POST /api/snippets/search` - Búsqueda con filtros
+- `GET /api/snippets/statistics/count` - Conteo de tags
+- `GET /api/snippets/raw/:id` - Código raw
+- `POST /api/snippets/export` - Exportar todo JSON
+- `POST /api/snippets/export/json` - Exportar seleccionados JSON
+- `POST /api/snippets/export/markdown` - Exportar por tag Markdown
+- `POST /api/snippets/export/markdown/selected` - Exportar seleccionados Markdown
+- `POST /api/backup` - Backup a Google Drive
+
+### Key Decisions
+
+1. **Mantener SQLite**: Para un gestor de snippets personal, SQLite es adecuado. No se recomienda migrar a PostgreSQL/MySQL a menos que se necesite concurrencia alta o distribución. SQLite es portable, sin servidor, y suficiente para miles de snippets.
+
+2. **Formato de importación JSON**: El formato de exportación actual se usará como contrato de importación para compatibilidad bidireccional.
+
+3. **Validación con Zod**: Se añadirá validación estricta en los endpoints críticos usando Zod (ya usado en MCP).
+
+### Fallos Identificados
+
+**Seguridad:**
+- Sin rate limiting en endpoints
+- Sin validación de tamaño de cuerpo (posible DoS)
+- Backup Google Drive expone credenciales en .env sin .gitignore adecuado
+- Sin sanitización de entrada en búsqueda (posible inyección)
+- Endpoint backup accesible sin autenticación
+
+**Funcionalidad:**
+- Endpoint `searchSnippets`: cuando query está vacío pero hay tags/languages, la lógica falla (línea 253-259)
+- MCP `delete_snippet`: no elimina las asociaciones Snippet_Tag antes de borrar (línea 198)
+- `createTags`: usa comparación `==` en lugar de `===` (línea 30)
+- Sin endpoint de importación JSON
+- Frontend: `console.log` en producción (línea 153 SnippetsContext.tsx)
+- Dockerfile: línea 43 copia `db.sqlite3` que no existe en el build
+
+**Rendimiento:**
+- Sin índices en SQLite para búsquedas frecuentes (title, description, language)
+- `createTags`: consulta SELECT * FROM tags en cada creación de snippet
+- `getAllSnippets`: carga todos los snippets sin paginación
+- Búsqueda usa `Op.substring` que no usa índices
+- Sin caché de resultados de búsqueda
+
+### Proposed Changes
+
+1. **Añadir endpoint de importación**: `POST /api/snippets/import` con validación de formato
+2. **Corregir búsqueda**: Lógica de filtros vacíos en searchSnippets
+3. **Corregir MCP delete**: Limpiar Snippet_Tag antes de eliminar
+4. **Añadir índices**: Migración para índices en title, description, language
+5. **Optimizar createTags**: Cache de tags en memoria
+6. **Añadir validación**: Zod en endpoints públicos
+7. **Corregir Dockerfile**: Remover línea de copia de db.sqlite3 o crear archivo vacío
+8. **Limpiar console.log**: Remover logs de desarrollo del frontend
+9. **Añadir rate limiting**: express-rate-limit en endpoints críticos
+10. **Evaluar con avo**: Configurar métricas y ejecutar bucle de optimización
+
+### File Structure
+
+Archivos a modificar:
+- `src/controllers/snippets.ts` - Corregir búsqueda, añadir importación
+- `src/controllers/export.ts` - Mejorar formato exportación
+- `src/mcp.ts` - Corregir delete_snippet
+- `src/utils/createTags.ts` - Optimizar con cache
+- `src/db/migrations/03_indexes.ts` - Nueva migración con índices
+- `src/server.ts` - Añadir rate limiting
+- `client/src/store/SnippetsContext.tsx` - Remover console.log
+- `Dockerfile` - Corregir copia de db
+- `snip.md` - Nuevo archivo de documentación
+
+### Architecture Diagram
+
+``` mermaid
+graph LR
+    A[Frontend React] -->|HTTP| B[Express API]
+    B -->|Sequelize| C[(SQLite)]
+    B -->|Google API| D[Google Drive Backup]
+    B -->|MCP Stdio| E[MCP Server]
+    F[Import JSON] -->|POST| B
+    B -->|Export JSON/MD| A
+```
+
+### Risks
+
+- **Compatibilidad de importación**: El formato JSON de pawelmalak puede diferir del actual - se necesita validación
+- **Migración de índices**: En bases de datos grandes puede bloquear operaciones brevemente
+- **Rate limiting**: Puede afectar uso legítimo si se configura demasiado restrictivo
+
+# Delivery Steps
+
+### ✓ Step 1: 1. Crear snip.md con definición completa de funcionalidades
+- Crear `snip.md` en la raíz del proyecto con toda la documentación
+- Incluir sección de fallos de seguridad con subsección avo
+- Incluir sección de fallos de funcionalidad con subsección avo
+- Incluir sección de fallos de rendimiento con subsección avo
+- Documentar requisitos de importación y sincronización
+- Recomendar mantener SQLite con justificación
+
+### ✓ Step 2: 2. Implementar endpoint de importación y corregir fallos críticos
+- Añadir `POST /api/snippets/import` en `src/controllers/snippets.ts`
+- Corregir lógica de búsqueda en `searchSnippets` (líneas 253-259)
+- Corregir `delete_snippet` en MCP para limpiar Snippet_Tag
+- Corregir comparación `==` a `===` en `createTags`
+- Añadir nueva ruta en `src/routes/snippets.ts`
+- Remover console.log del frontend
+
+### ✓ Step 3: 3. Añadir índices, validación y rate limiting
+- Crear migración `03_indexes.ts` con índices en title, description, language
+- Añadir validación de tamaño de cuerpo en server.ts
+- Añadir rate limiting en server.ts
+- Optimizar createTags con cache de tags en memoria
+- Corregir Dockerfile
+
+### * Step 4: 4. Evaluar con skill avo y actualizar github
+- Configurar avo.json con métricas de rendimiento
+- Ejecutar bucle avo para optimizaciones
+- Generar informe .avo/INFORME.md
+- Actualizar snip.md con resultados
+- Commit y push a github
