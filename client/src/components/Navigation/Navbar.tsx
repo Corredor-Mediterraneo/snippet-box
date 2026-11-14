@@ -1,24 +1,17 @@
-import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Route } from '../../typescript/interfaces';
 import routeConfig from './routes.json';
-import {
-  ImportJsonModal,
-  ImportObsidianModal,
-  DeduplicateModal,
-  BackupModal
-} from '../Modals';
 
-export const Navbar = (): JSX.Element => {
+interface Props {
+  onShowJsonImport: () => void;
+  onShowObsidianImport: () => void;
+  onShowDeduplicate: () => void;
+  onShowBackup: () => void;
+}
+
+export const Navbar = (props: Props): JSX.Element => {
   const routes = routeConfig.routes as Route[];
-  const [showJsonImport, setShowJsonImport] = useState(false);
-  const [showObsidianImport, setShowObsidianImport] = useState(false);
-  const [showDeduplicate, setShowDeduplicate] = useState(false);
-  const [showBackup, setShowBackup] = useState(false);
-
-  const handleImportSuccess = () => {
-    window.location.reload();
-  };
+  const { onShowJsonImport, onShowObsidianImport, onShowDeduplicate, onShowBackup } = props;
 
   return (
     <>
@@ -48,16 +41,18 @@ export const Navbar = (): JSX.Element => {
               <ul className='dropdown-menu dropdown-menu-end'>
                 <li>
                   <button
+                    type='button'
                     className='dropdown-item'
-                    onClick={() => setShowJsonImport(true)}
+                    onClick={onShowJsonImport}
                   >
                     Import JSON
                   </button>
                 </li>
                 <li>
                   <button
+                    type='button'
                     className='dropdown-item'
-                    onClick={() => setShowObsidianImport(true)}
+                    onClick={onShowObsidianImport}
                   >
                     Import Obsidian
                   </button>
@@ -66,8 +61,9 @@ export const Navbar = (): JSX.Element => {
             </li>
             <li className='nav-item'>
               <button
+                type='button'
                 className='nav-link btn'
-                onClick={() => setShowDeduplicate(true)}
+                onClick={onShowDeduplicate}
                 style={{ color: '#adb5bd' }}
               >
                 Remove Duplicates
@@ -75,8 +71,9 @@ export const Navbar = (): JSX.Element => {
             </li>
             <li className='nav-item'>
               <button
+                type='button'
                 className='nav-link btn'
-                onClick={() => setShowBackup(true)}
+                onClick={onShowBackup}
                 style={{ color: '#adb5bd' }}
               >
                 Backup / Restore
@@ -85,26 +82,6 @@ export const Navbar = (): JSX.Element => {
           </ul>
         </div>
       </nav>
-
-      <ImportJsonModal
-        show={showJsonImport}
-        onClose={() => setShowJsonImport(false)}
-        onSuccess={handleImportSuccess}
-      />
-      <ImportObsidianModal
-        show={showObsidianImport}
-        onClose={() => setShowObsidianImport(false)}
-        onSuccess={handleImportSuccess}
-      />
-      <DeduplicateModal
-        show={showDeduplicate}
-        onClose={() => setShowDeduplicate(false)}
-        onSuccess={handleImportSuccess}
-      />
-      <BackupModal
-        show={showBackup}
-        onClose={() => setShowBackup(false)}
-      />
     </>
   );
 };

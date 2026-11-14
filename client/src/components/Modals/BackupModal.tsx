@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import axios from 'axios';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 
 export const BackupModal = (props: Props): JSX.Element => {
   const { show, onClose } = props;
-  const [configured, setConfigured] = useState(false);
+  const [configured, setConfigured] = useState<boolean | null>(null);
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
@@ -16,25 +16,27 @@ export const BackupModal = (props: Props): JSX.Element => {
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [backups, setBackups] = useState<any[]>([]);
+  const initialized = useRef(false);
 
-  if (!show) return <></>;
+  if (!show) {
+    initialized.current = false;
+    return <></>;
+  }
 
-  useEffect(() => {
-    if (show) {
-      checkStatus();
-    }
-  }, [show]);
-
-  const checkStatus = async () => {
-    try {
-      const res = await axios.get('/api/backup/status');
-      setConfigured(res.data.configured);
-      setReady(res.data.ready);
-    } catch {
-      setConfigured(false);
-      setReady(false);
-    }
-  };
+  // Initialize status on first render when modal opens
+  if (!initialized.current) {
+    initialized.current = true;
+    (async () => {
+      try {
+        const res = await axios.get('/api/backup/status');
+        setConfigured(res.data.configured);
+        setReady(res.data.ready);
+      } catch {
+        setConfigured(false);
+        setReady(false);
+      }
+    })();
+  }
 
   const handleBackup = async () => {
     if (!apiKey.trim()) {
@@ -112,7 +114,7 @@ export const BackupModal = (props: Props): JSX.Element => {
   };
 
   return (
-    <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal-overlay" style={{ display: 'block', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)' }}>
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
@@ -120,7 +122,12 @@ export const BackupModal = (props: Props): JSX.Element => {
             <button type="button" className="btn-close" onClick={onClose} />
           </div>
           <div className="modal-body">
-            {!configured ? (
+            {configured === null ? (
+              <div className="alert alert-info">
+                <div className="spinner-border spinner-border-sm me-2" />
+                Loading...
+              </div>
+            ) : !configured ? (
               <div className="alert alert-warning">
                 <strong>Not configured</strong>
                 <p className="mb-0">

@@ -271,6 +271,13 @@ graph LR
 - Actualizar versiones vulnerables si es posible
 - Generar informe AVO de seguridad
 
-### * Step 18: 18. Commit final y push de todas las mejoras
+### ✓ Step 18: 18. Commit final y push de todas las mejoras
 - Commit de snip.md actualizado con auditoría de vulnerabilidades
 - Push a github
+
+### ✓ Step 19: 19. Corregir error React #310 en modales del frontend
+- Eliminar createPortal de los 4 modales (BackupModal, ImportJsonModal, ImportObsidianModal, DeduplicateModal)
+- Mover modales del Navbar al nivel del App component para evitar conflictos con React Router
+- Reemplazar useEffect con useRef + async IIFE en BackupModal para evitar re-renders problemáticos
+- Verificar con Playwright: Backup modal pasa sin errores, Remove Duplicates pasa sin errores
+- Commit y push a github
