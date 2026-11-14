@@ -42,13 +42,19 @@ export const createSnippet = asyncWrapper(
 );
 
 /**
- * @description Get all snippets
+ * @description Get all snippets (with optional pagination)
  * @route /api/snippets
  * @request GET
+ * @query limit - max snippets to return (default: all, max: 200)
+ * @query offset - number of snippets to skip (default: 0)
  */
 export const getAllSnippets = asyncWrapper(
-  async (_req: Request, res: Response, _next: NextFunction): Promise<void> => {
-    const snippets = await SnippetModel.findAll({
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+    const limit = parseInt(req.query.limit as string, 10);
+    const offset = parseInt(req.query.offset as string, 10);
+    const MAX_LIMIT = 200;
+
+    const findOptions: any = {
       include: {
         model: TagModel,
         as: 'tags',
@@ -57,7 +63,15 @@ export const getAllSnippets = asyncWrapper(
           attributes: []
         }
       }
-    });
+    };
+
+    // Apply pagination only if valid limit is provided
+    if (!isNaN(limit) && limit > 0) {
+      findOptions.limit = Math.min(limit, MAX_LIMIT);
+      findOptions.offset = (!isNaN(offset) && offset >= 0) ? offset : 0;
+    }
+
+    const snippets = await SnippetModel.findAll(findOptions);
 
     const populatedSnippets = snippets.map(snippet => {
       const rawSnippet = snippet.get({ plain: true });
@@ -241,7 +255,7 @@ export const getRawCode = asyncWrapper(
 );
 
 /**
- * @description Search snippets
+ * @description Search snippets (uses FTS5 if available, falls back to LIKE)
  * @route /api/snippets/search
  * @request POST
  */
@@ -249,17 +263,51 @@ export const searchSnippets = asyncWrapper(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const { query, tags, languages } = <SearchQuery>req.body;
 
+    // Check if FTS5 table exists
+    let ftsAvailable = false;
+    try {
+      const result = await sequelize.query(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='snippets_fts'",
+        { type: QueryTypes.SELECT }
+      );
+      ftsAvailable = (result as any[]).length > 0;
+    } catch {
+      // FTS5 not available, fall back to LIKE
+    }
+
     // Build dynamic where clause
     const whereConditions: any[] = [];
 
     // Only add text search if query is not empty
     if (query && query.trim() !== '') {
-      whereConditions.push({
-        [Op.or]: [
-          { title: { [Op.substring]: query } },
-          { description: { [Op.substring]: query } }
-        ]
-      });
+      if (ftsAvailable) {
+        // Use FTS5 for full-text search — get matching IDs first
+        const ftsResults = await sequelize.query(
+          `SELECT rowid FROM snippets_fts WHERE snippets_fts MATCH :query`,
+          {
+            type: QueryTypes.SELECT,
+            replacements: { query }
+          }
+        );
+        const ftsIds = (ftsResults as any[]).map((r: any) => r.rowid);
+
+        if (ftsIds.length === 0) {
+          res.status(200).json({ data: [] });
+          return;
+        }
+
+        whereConditions.push({
+          id: { [Op.in]: ftsIds }
+        });
+      } else {
+        // Fallback to LIKE search
+        whereConditions.push({
+          [Op.or]: [
+            { title: { [Op.substring]: query } },
+            { description: { [Op.substring]: query } }
+          ]
+        });
+      }
     }
 
     // Only add language filter if languages array has items

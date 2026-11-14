@@ -181,9 +181,37 @@ graph LR
 - Optimizar createTags con cache de tags en memoria
 - Corregir Dockerfile
 
-### * Step 4: 4. Evaluar con skill avo y actualizar github
+### ✓ Step 4: 4. Evaluar con skill avo y actualizar github
 - Configurar avo.json con métricas de rendimiento
-- Ejecutar bucle avo para optimizaciones
-- Generar informe .avo/INFORME.md
+- Generar informe .avo/INFORME.md (sin arnés, resultados no verificados por código)
 - Actualizar snip.md con resultados
+- Commit y push exitosos a github (master actualizado)
+
+### ✓ Step 5: 5. Actualizar README.md y hacer push
+- Reescribir README.md señalando diferencias con pawelmalak/snippet-box original
+- Incluir capturas de pantalla de las nuevas funcionalidades (importación, búsqueda corregida)
+- Documentar las mejoras de seguridad, funcionalidad y rendimiento
+- Añadir sección de MCP Server y Google Drive Backup
 - Commit y push a github
+
+### ✓ Step 6: 6. Implementar paginación en getAllSnippets
+- Añadir parámetros limit y offset en el controller
+- Actualizar la ruta y el frontend para soportar paginación
+- Configurar un límite máximo razonable (ej. 100 snippets por página)
+
+### ✓ Step 7: 7. Implementar FTS5 en SQLite para búsqueda
+- Crear migración para tabla virtual FTS5
+- Actualizar searchSnippets para usar FTS5 en lugar de Op.substring
+- Mantener compatibilidad con búsqueda por tags y languages
+
+### ✓ Step 8: 8. Añadir autenticación en endpoint de backup
+- Implementar middleware de API key simple para /api/backup
+- Configurar la clave en .env
+- Actualizar snip.md con la implementación
+
+### ✓ Step 9: 9. Configurar CORS en producción
+- Añadir middleware cors en server.ts
+- Configurar orígenes permitidos desde .env
+- Actualizar snip.md con la implementación
+
+### * Step 10: 10. Commit final y push de todas las mejoras

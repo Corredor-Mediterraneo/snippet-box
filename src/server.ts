@@ -1,6 +1,7 @@
 import { join } from 'path';
 import dotenv from 'dotenv';
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 import { Logger } from './utils';
 import { connectDB } from './db';
 import { errorHandler } from './middleware';
@@ -17,6 +18,23 @@ dotenv.config({ path: './src/config/.env' });
 const app = express();
 const logger = new Logger('server');
 const PORT = process.env.PORT || 5000;
+
+// CORS configuration
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5000', 'http://localhost:3000'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 // App config
 app.use(express.json({ limit: '1mb' }));
@@ -72,8 +90,26 @@ if (
   logger.info('Google Drive Backup configured');
 }
 
-// Backup route (optional, requires Google Drive config)
-app.post('/api/backup', async (_req: Request, res: Response) => {
+// Backup authentication middleware
+const requireBackupAuth = (req: Request, res: Response, next: NextFunction): void => {
+  const apiKey = req.headers['x-backup-api-key'] as string;
+  const configuredKey = process.env.BACKUP_API_KEY;
+
+  if (!configuredKey) {
+    res.status(503).json({ error: 'Backup API key not configured' });
+    return;
+  }
+
+  if (!apiKey || apiKey !== configuredKey) {
+    res.status(401).json({ error: 'Unauthorized: invalid or missing API key' });
+    return;
+  }
+
+  next();
+};
+
+// Backup route (optional, requires Google Drive config + API key)
+app.post('/api/backup', requireBackupAuth, async (_req: Request, res: Response) => {
   if (!googleDriveBackup) {
     return res.status(503).json({ error: 'Google Drive Backup not configured' });
   }
