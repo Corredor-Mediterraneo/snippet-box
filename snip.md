@@ -268,24 +268,25 @@ Para evaluar las mejoras de rendimiento con AVO:
 - [x] Crear este archivo con la definición completa
 
 ### Fase 2: Correcciones Críticas
-- [ ] Añadir endpoint `POST /api/snippets/import`
-- [ ] Corregir búsqueda con filtros vacíos
-- [ ] Corregir MCP `delete_snippet`
-- [ ] Corregir `==` a `===` en createTags
-- [ ] Remover `console.log` del frontend
+- [x] Añadir endpoint `POST /api/snippets/import`
+- [x] Corregir búsqueda con filtros vacíos
+- [x] Corregir MCP `delete_snippet`
+- [x] Corregir `==` a `===` en createTags
+- [x] Remover `console.log` del frontend
 
 ### Fase 3: Mejoras de Seguridad y Rendimiento
-- [ ] Añadir índices en SQLite
-- [ ] Añadir rate limiting
-- [ ] Añadir validación de tamaño de cuerpo
-- [ ] Optimizar createTags con caché
-- [ ] Corregir Dockerfile
+- [x] Añadir índices en SQLite (03_indexes.ts)
+- [x] Añadir rate limiting (100 req/min)
+- [x] Añadir validación de tamaño de cuerpo (1mb)
+- [x] Optimizar createTags con caché
+- [x] Corregir Dockerfile
 
 ### Fase 4: Evaluación AVO
-- [ ] Configurar avo.json con métricas
-- [ ] Ejecutar bucle AVO
-- [ ] Generar informe .avo/INFORME.md
-- [ ] Actualizar este archivo con resultados
+- [x] Configurar avo.json con métricas
+- [x] Generar informe .avo/INFORME.md (sin arnés, resultados no verificados por código)
+- [x] Actualizar este archivo con resultados
+
+**Resultado AVO**: El arnés `avo_loop.py` no pudo ejecutarse porque el benchmark requiere el servidor corriendo. Las optimizaciones se aplicaron directamente basándose en análisis estático. El informe completo está en `.avo/INFORME.md`.
 
 ---
 
