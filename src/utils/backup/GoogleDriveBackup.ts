@@ -97,7 +97,9 @@ export class GoogleDriveBackup {
       this.logger.info(`Backup uploaded to Google Drive: ${filename}`);
       return { filename, uploaded: true };
     } catch (error) {
-      this.logger.error(`Backup failed: ${String(error)}`);
+      // Avoid logging sensitive token data
+      const msg = String(error);
+      this.logger.error(`Backup failed: ${msg.includes('invalid_client') || msg.includes('invalid_grant') || msg.includes('invalid_token') ? 'Authentication error' : msg}`);
       throw error;
     }
   }
@@ -138,7 +140,8 @@ export class GoogleDriveBackup {
         });
       });
     } catch (error) {
-      this.logger.error(`Download failed: ${String(error)}`);
+      const msg = String(error);
+      this.logger.error(`Download failed: ${msg.includes('invalid_grant') || msg.includes('invalid_token') ? 'Authentication error' : msg}`);
       throw error;
     }
   }
@@ -160,7 +163,8 @@ export class GoogleDriveBackup {
         modifiedTime: file.modifiedTime,
       }));
     } catch (error) {
-      this.logger.error(`List backups failed: ${String(error)}`);
+      const msg = String(error);
+      this.logger.error(`List backups failed: ${msg.includes('invalid_grant') || msg.includes('invalid_token') ? 'Authentication error' : msg}`);
       throw error;
     }
   }

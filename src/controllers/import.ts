@@ -22,9 +22,11 @@ export const importFromSqlite = asyncWrapper(
       // Decode base64 to Buffer
       const buffer = Buffer.from(database, 'base64');
 
-      // Write to a temporary file
-      const tmpPath = `/tmp/import_${Date.now()}.sqlite3`;
+      // Write to a temporary file in OS-specific temp directory
+      const os = require('os');
       const fs = require('fs');
+      const tmpDir = os.tmpdir();
+      const tmpPath = `${tmpDir}/import_${Date.now()}_${Math.random().toString(36).slice(2)}.sqlite3`;
       fs.writeFileSync(tmpPath, buffer);
 
       // Open the source database

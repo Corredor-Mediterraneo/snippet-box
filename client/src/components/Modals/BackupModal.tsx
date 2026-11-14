@@ -131,7 +131,7 @@ export const BackupModal = (props: Props): JSX.Element => {
                 rows={3}
                 value={accessToken}
                 onChange={e => setAccessToken(e.target.value)}
-                placeholder="ya29.a0AehfT..."
+                placeholder="ya29... (paste your access token here)"
                 style={{ fontSize: '0.8rem' }}
               />
               {accessToken && (
@@ -152,7 +152,7 @@ export const BackupModal = (props: Props): JSX.Element => {
                 rows={2}
                 value={refreshToken}
                 onChange={e => setRefreshToken(e.target.value)}
-                placeholder="1//04_I39eaG..."
+                placeholder="1//... (paste your refresh token here)"
                 style={{ fontSize: '0.8rem' }}
               />
               {refreshToken && (

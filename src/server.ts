@@ -26,8 +26,14 @@ const allowedOrigins = process.env.CORS_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. mobile apps, curl)
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Only allow explicitly configured origins
+    // In development, allow localhost; in production, only CORS_ORIGINS from .env
+    if (!origin) {
+      // Allow server-to-server requests (no origin header)
+      callback(null, true);
+      return;
+    }
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

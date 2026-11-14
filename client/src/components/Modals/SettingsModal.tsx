@@ -132,7 +132,7 @@ export const SettingsModal = (props: Props): JSX.Element => {
                   rows={3}
                   value={credentials.accessToken}
                   onChange={e => setCredentials({ ...credentials, accessToken: e.target.value })}
-                  placeholder="ya29.a0AehfT..."
+                  placeholder="ya29... (paste your access token here)"
                   style={{ fontSize: '0.8rem' }}
                 />
                 {credentials.accessToken && (
@@ -153,7 +153,7 @@ export const SettingsModal = (props: Props): JSX.Element => {
                   rows={2}
                   value={credentials.refreshToken}
                   onChange={e => setCredentials({ ...credentials, refreshToken: e.target.value })}
-                  placeholder="1//04_I39eaG..."
+                  placeholder="1//... (paste your refresh token here)"
                   style={{ fontSize: '0.8rem' }}
                 />
                 {credentials.refreshToken && (
