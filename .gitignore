@@ -2,3 +2,8 @@ node_modules/
 build/
 data/*
 !data/**/*.json
+.env
+*.sqlite3
+snippets_export.json
+extract_original_db.js
+inspect_db.js
