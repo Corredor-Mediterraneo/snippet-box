@@ -38,6 +38,8 @@
 | POST | `/api/snippets/export/obsidian` | Exportar como vault de Obsidian (ZIP) |
 | GET | `/api/snippets/:id/export/obsidian` | Exportar snippet individual como Markdown Obsidian |
 | POST | `/api/snippets/import` | Importar snippets desde JSON |
+| POST | `/api/snippets/import/sqlite` | Importar desde base de datos SQLite nativa |
+| POST | `/api/snippets/import/markdown` | Importar archivos Markdown individuales |
 | POST | `/api/snippets/deduplicate` | Eliminar snippets duplicados |
 | GET | `/api/snippets/duplicates/count` | Contar snippets duplicados |
 | POST | `/api/backup` | Backup a Google Drive |
@@ -85,6 +87,25 @@
 - Endpoint `POST /api/snippets/export/obsidian` que genere un ZIP con archivos `.md` organizados por lenguaje
 - Endpoint `GET /api/snippets/:id/export/obsidian` para exportar un snippet individual
 - Los archivos exportados deben ser compatibles con Obsidian (YAML frontmatter + código en bloques fenced)
+
+### 8. Importación SQLite Nativa
+- Endpoint `POST /api/snippets/import/sqlite` que acepte un archivo `.sqlite3` codificado en base64
+- Parsea las tablas `snippets`, `tags` y `snippets_tags` de la base de datos original
+- Reconstruye las relaciones snippet-tag preservando los datos originales
+- Modal en el frontend para seleccionar y cargar el archivo SQLite
+
+### 9. Importación Markdown Individual
+- Endpoint `POST /api/snippets/import/markdown` que acepte archivos `.md` individuales
+- Soporta YAML frontmatter con: title, description, language, tags
+- Extrae bloques de código del cuerpo del archivo
+- Determina el lenguaje automáticamente si no está especificado
+- Modal en el frontend para seleccionar múltiples archivos `.md`
+
+### 10. Menú Import Completo
+- El dropdown "Import" en la barra superior muestra 4 opciones: JSON, SQLite, Markdown, Obsidian
+- Cada opción abre un modal dedicado con controles de selección de origen y botones de proceder/cancelar
+- Los modales usan overlays fijos (sin createPortal) para evitar conflictos con React Router
+- Bootstrap JS bundle cargado para dropdowns funcionales en todos los navegadores
 
 ---
 

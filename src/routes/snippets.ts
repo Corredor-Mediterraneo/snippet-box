@@ -22,6 +22,10 @@ import {
   exportSingleToObsidian
 } from '../controllers/obsidian';
 import {
+  importFromSqlite,
+  importFromMarkdown
+} from '../controllers/import';
+import {
   removeDuplicates,
   countDuplicates
 } from '../controllers/deduplication';
@@ -49,6 +53,8 @@ snippetRouter.route('/export/obsidian').post(exportToObsidian);
 // Import routes
 snippetRouter.route('/import').post(importSnippets);
 snippetRouter.route('/import/obsidian').post(importFromObsidian);
+snippetRouter.route('/import/sqlite').post(importFromSqlite);
+snippetRouter.route('/import/markdown').post(importFromMarkdown);
 
 // Deduplication routes (must be before /:id generic routes)
 snippetRouter.route('/deduplicate').post(removeDuplicates);

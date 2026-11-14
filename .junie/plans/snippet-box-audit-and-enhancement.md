@@ -281,3 +281,15 @@ graph LR
 - Reemplazar useEffect con useRef + async IIFE en BackupModal para evitar re-renders problemáticos
 - Verificar con Playwright: Backup modal pasa sin errores, Remove Duplicates pasa sin errores
 - Commit y push a github
+
+### ✓ Step 20: 20. Completar menú Import con todas las opciones y modales
+- Documentar requerimiento en snip.md: menú Import con SQLite, JSON, Markdown, Obsidian
+- Crear modal ImportSqliteModal para importar archivos .sqlite3 nativos
+- Crear modal ImportMarkdownModal para importar archivos .md individuales
+- Añadir backend endpoint POST /api/snippets/import/sqlite para parsear SQLite
+- Añadir backend endpoint POST /api/snippets/import/markdown para archivos markdown
+- Actualizar Navbar con todas las opciones de importación
+- Actualizar App.tsx con los nuevos modales
+- Añadir Bootstrap JS bundle para dropdowns funcionales
+- Test con Playwright: 7/7 tests pasan (Backup, Deduplicate, JSON, SQLite, Markdown, Obsidian, dropdown)
+- Commit y push a github

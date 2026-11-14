@@ -5,13 +5,15 @@ import routeConfig from './routes.json';
 interface Props {
   onShowJsonImport: () => void;
   onShowObsidianImport: () => void;
+  onShowSqliteImport: () => void;
+  onShowMarkdownImport: () => void;
   onShowDeduplicate: () => void;
   onShowBackup: () => void;
 }
 
 export const Navbar = (props: Props): JSX.Element => {
   const routes = routeConfig.routes as Route[];
-  const { onShowJsonImport, onShowObsidianImport, onShowDeduplicate, onShowBackup } = props;
+  const { onShowJsonImport, onShowObsidianImport, onShowSqliteImport, onShowMarkdownImport, onShowDeduplicate, onShowBackup } = props;
 
   return (
     <>
@@ -46,6 +48,24 @@ export const Navbar = (props: Props): JSX.Element => {
                     onClick={onShowJsonImport}
                   >
                     Import JSON
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type='button'
+                    className='dropdown-item'
+                    onClick={onShowSqliteImport}
+                  >
+                    Import SQLite
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type='button'
+                    className='dropdown-item'
+                    onClick={onShowMarkdownImport}
+                  >
+                    Import Markdown
                   </button>
                 </li>
                 <li>

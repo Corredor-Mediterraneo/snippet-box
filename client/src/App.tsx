@@ -6,6 +6,8 @@ import { SnippetsContextProvider } from './store';
 import {
   ImportJsonModal,
   ImportObsidianModal,
+  ImportSqliteModal,
+  ImportMarkdownModal,
   DeduplicateModal,
   BackupModal
 } from './components/Modals';
@@ -13,6 +15,8 @@ import {
 export const App = () => {
   const [showJsonImport, setShowJsonImport] = useState(false);
   const [showObsidianImport, setShowObsidianImport] = useState(false);
+  const [showSqliteImport, setShowSqliteImport] = useState(false);
+  const [showMarkdownImport, setShowMarkdownImport] = useState(false);
   const [showDeduplicate, setShowDeduplicate] = useState(false);
   const [showBackup, setShowBackup] = useState(false);
 
@@ -26,6 +30,8 @@ export const App = () => {
         <Navbar
           onShowJsonImport={() => setShowJsonImport(true)}
           onShowObsidianImport={() => setShowObsidianImport(true)}
+          onShowSqliteImport={() => setShowSqliteImport(true)}
+          onShowMarkdownImport={() => setShowMarkdownImport(true)}
           onShowDeduplicate={() => setShowDeduplicate(true)}
           onShowBackup={() => setShowBackup(true)}
         />
@@ -43,6 +49,16 @@ export const App = () => {
         <ImportObsidianModal
           show={showObsidianImport}
           onClose={() => setShowObsidianImport(false)}
+          onSuccess={handleImportSuccess}
+        />
+        <ImportSqliteModal
+          show={showSqliteImport}
+          onClose={() => setShowSqliteImport(false)}
+          onSuccess={handleImportSuccess}
+        />
+        <ImportMarkdownModal
+          show={showMarkdownImport}
+          onClose={() => setShowMarkdownImport(false)}
           onSuccess={handleImportSuccess}
         />
         <DeduplicateModal
