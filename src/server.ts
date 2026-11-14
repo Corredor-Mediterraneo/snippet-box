@@ -138,7 +138,7 @@ app.post('/api/backup', async (req: Request, res: Response) => {
   }
 
   try {
-    const dbPath = process.env.DATABASE_PATH || './data/snippets.sqlite3';
+    const dbPath = process.env.DATABASE_PATH || 'data/db.sqlite3';
     const result = await backup.backupDatabase(dbPath);
     return res.json({ message: 'Backup successful', filename: result.filename });
   } catch (error: any) {
@@ -167,7 +167,7 @@ app.post('/api/backup/restore', requireBackupAuth, async (_req: Request, res: Re
   }
 
   try {
-    const dbPath = process.env.DATABASE_PATH || './data/snippets.sqlite3';
+    const dbPath = process.env.DATABASE_PATH || 'data/db.sqlite3';
     const backupPath = dbPath + '.restore.tmp';
     await googleDriveBackup.downloadLatestBackup(backupPath);
     

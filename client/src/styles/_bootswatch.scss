@@ -185,10 +185,19 @@ thead th {
   }
 }
 
-.modal-footer {
-  background-color: $gray-100;
-}
-
 .modal-content {
   box-shadow: $box-shadow-lg;
+  background-color: $modal-content-bg !important;
+}
+
+.modal-header {
+  background-color: $modal-content-bg;
+}
+
+.modal-body {
+  background-color: $modal-content-bg;
+}
+
+.modal-footer {
+  background-color: $modal-content-bg;
 }
